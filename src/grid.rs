@@ -20,8 +20,8 @@ impl Display for Grid {
    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
       // top
       write!(f, "┌")?;
-      for i in 0..self.width - 1 {
-         if self[i].east_connected {
+      for cell in self.inner[0..self.width - 1].iter() {
+         if cell.east_connected {
             write!(f, "────")?;
          } else {
             write!(f, "───┬")?;
@@ -87,7 +87,7 @@ impl Display for Grid {
    }
 }
 
-trait GridIndex: Copy {
+pub trait GridIndex: Copy {
    fn as_1d(&self, grid_width: usize) -> usize;
 }
 

@@ -5,7 +5,7 @@ use rand::{FromEntropy, Rng};
 use rand_xorshift::XorShiftRng;
 
 fn main() {
-   let mut grid = Grid::new(12, 12);
+   let mut grid = Grid::new(21, 21);
    binary_tree(&mut grid);
    println!("{}", grid);
 }
