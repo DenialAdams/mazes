@@ -18,57 +18,27 @@ pub struct Grid {
 impl Display for Grid {
    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
       // top
-      write!(f, "┌")?;
-      for cell in self.inner[0..self.width - 1].iter() {
-         if cell.east_connected {
-            write!(f, "────")?;
-         } else {
-            write!(f, "───┬")?;
-         }
+      write!(f, "+")?;
+      for _ in 0..self.width {
+         write!(f, "---+")?;
       }
-      writeln!(f, "───┐")?;
+      writeln!(f)?;
 
       let mut top_buf = String::with_capacity((self.width * 3) + 1);
       let mut bot_buf = String::with_capacity((self.width * 3) + 1);
+      top_buf.push('|');
+      bot_buf.push('+');
       for (i, cell) in self.inner.iter().enumerate() {
          // beginning of row
-         if i % self.width == 0 {
-            top_buf.push('│');
-            if !cell.south_connected && self.has_neighbor_south(i) {
-               bot_buf.push('├');
-            } else if self.has_neighbor_south(i) {
-               bot_buf.push('│');
-            } else {
-               bot_buf.push('└');
-            }
-         }
          if cell.east_connected {
             top_buf.push_str("    ");
          } else {
-            top_buf.push_str("   │");
+            top_buf.push_str("   |");
          }
          if cell.south_connected {
-            if self.has_neighbor_east(i) && !self[i + 1].south_connected {
-               if cell.east_connected {
-                  bot_buf.push_str("   ┌");
-               } else {
-                  bot_buf.push_str("   ├");
-               }
-            } else {
-               bot_buf.push_str("   │");
-            }
-         } else if self.has_neighbor_south(i) && !self[i + self.width].east_connected {
-            if cell.east_connected {
-               bot_buf.push_str("───┬")
-            } else {
-               bot_buf.push_str("───┼")
-            }
-         } else if cell.east_connected {
-            bot_buf.push_str("────");
-         } else if self.has_neighbor_east(i) && !self[i + 1].south_connected {
-            bot_buf.push_str("───┴");
+            bot_buf.push_str("   +")
          } else {
-            bot_buf.push_str("───┘");
+            bot_buf.push_str("---+")
          }
 
          // end of row
@@ -79,6 +49,8 @@ impl Display for Grid {
             writeln!(f)?;
             top_buf.clear();
             bot_buf.clear();
+            top_buf.push('|');
+            bot_buf.push('+');
          }
       }
 
