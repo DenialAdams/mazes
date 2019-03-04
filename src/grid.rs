@@ -1,4 +1,3 @@
-use std::fmt::Write;
 use std::fmt::{self, Display, Formatter};
 use std::ops::{Index, IndexMut};
 
