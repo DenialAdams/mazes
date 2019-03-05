@@ -1,13 +1,16 @@
 mod grid;
 
+use std::io::BufWriter;
+use std::fs::File;
 use grid::Grid;
 use rand::{FromEntropy, Rng};
 use rand_xorshift::XorShiftRng;
 
 fn main() {
-   let mut grid = Grid::new(21, 21);
+   let mut grid = Grid::new(12, 12);
    binary_tree(&mut grid);
-   println!("{}", grid);
+   let mut destination = BufWriter::new(File::create("maze.svg").unwrap());
+   grid.write_as_svg(&mut destination).unwrap();
 }
 
 fn binary_tree(grid: &mut Grid) {

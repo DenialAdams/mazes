@@ -1,5 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 use std::ops::{Index, IndexMut};
+use std::io::{self, Write};
 
 #[derive(Copy, Clone, Default)]
 pub struct Cell {
@@ -29,7 +30,6 @@ impl Display for Grid {
       top_buf.push('|');
       bot_buf.push('+');
       for (i, cell) in self.inner.iter().enumerate() {
-         // beginning of row
          if cell.east_connected {
             top_buf.push_str("    ");
          } else {
@@ -153,6 +153,30 @@ impl Grid {
 
    pub fn size(&self) -> usize {
       self.inner.len()
+   }
+
+   pub fn write_as_svg<W: Write>(&self, dest: &mut W) -> io::Result<()> {
+      writeln!(dest, "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">", (self.width * 3) + 6, (self.height * 3) + 6)?;
+      // top wall
+      writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"{}\" y2=\"0\" stroke=\"black\" stroke-linecap=\"square\" />", self.width * 3)?;
+      // west wall
+      writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"{}\" stroke=\"black\" stroke-linecap=\"square\" />", self.height * 3)?;
+      for (i, cell) in self.inner.iter().enumerate() {
+         let row = i / self.width;
+         let col = i % self.width;
+
+         let upper_left_y = row * 3;
+         let upper_left_x = col * 3;
+
+         if !cell.south_connected {
+            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke=\"black\" stroke-linecap=\"square\" />", upper_left_x, upper_left_y + 3, upper_left_x + 3, upper_left_y + 3)?;
+         }
+         if !cell.east_connected {
+            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke=\"black\" stroke-linecap=\"square\" />", upper_left_x + 3, upper_left_y, upper_left_x + 3, upper_left_y + 3)?;
+         }
+      }
+      writeln!(dest, "</svg>")?;
+      Ok(())
    }
 }
 
