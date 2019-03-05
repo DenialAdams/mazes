@@ -127,6 +127,22 @@ impl Grid {
       index.as_1d(self.width) % self.width != 0
    }
 
+   pub fn neighbors<I: GridIndex>(&self, index: I, buf: &mut Vec<usize>) {
+      let index = index.as_1d(self.width);
+      if self.has_neighbor_north(index) {
+         buf.push(index - self.width);
+      }
+      if self.has_neighbor_south(index) {
+         buf.push(index + self.width);
+      }
+      if self.has_neighbor_east(index) {
+         buf.push(index + 1);
+      }
+      if self.has_neighbor_west(index) {
+         buf.push(index - 1);
+      }
+   }
+
    pub fn connect_cell_north<I: GridIndex>(&mut self, index: I) {
       let width = self.width;
       self[index].north_connected = true;
@@ -171,6 +187,7 @@ impl Grid {
          if !cell.south_connected {
             writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke=\"black\" stroke-linecap=\"square\" />", upper_left_x, upper_left_y + 3, upper_left_x + 3, upper_left_y + 3)?;
          }
+
          if !cell.east_connected {
             writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke=\"black\" stroke-linecap=\"square\" />", upper_left_x + 3, upper_left_y, upper_left_x + 3, upper_left_y + 3)?;
          }
