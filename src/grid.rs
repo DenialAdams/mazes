@@ -173,10 +173,19 @@ impl Grid {
 
    pub fn write_as_svg<W: Write>(&self, dest: &mut W) -> io::Result<()> {
       writeln!(dest, "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">", (self.width * 3) + 6, (self.height * 3) + 6)?;
+      // first, we draw a simple grid
+      for i in 0..self.inner.len() {
+         let row = i / self.width;
+         let col = i % self.width;
+
+         let upper_left_y = row * 3;
+         let upper_left_x = col * 3;
+         writeln!(dest, "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ededed;fill:#ffffff\" />", upper_left_x, upper_left_y, 3, 3)?;
+      }
       // top wall
-      writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"{}\" y2=\"0\" stroke=\"black\" stroke-linecap=\"square\" />", self.width * 3)?;
+      writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"{}\" y2=\"0\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", self.width * 3)?;
       // west wall
-      writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"{}\" stroke=\"black\" stroke-linecap=\"square\" />", self.height * 3)?;
+      writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", self.height * 3)?;
       for (i, cell) in self.inner.iter().enumerate() {
          let row = i / self.width;
          let col = i % self.width;
@@ -185,11 +194,11 @@ impl Grid {
          let upper_left_x = col * 3;
 
          if !cell.south_connected {
-            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke=\"black\" stroke-linecap=\"square\" />", upper_left_x, upper_left_y + 3, upper_left_x + 3, upper_left_y + 3)?;
+            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", upper_left_x, upper_left_y + 3, upper_left_x + 3, upper_left_y + 3)?;
          }
 
          if !cell.east_connected {
-            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" stroke=\"black\" stroke-linecap=\"square\" />", upper_left_x + 3, upper_left_y, upper_left_x + 3, upper_left_y + 3)?;
+            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", upper_left_x + 3, upper_left_y, upper_left_x + 3, upper_left_y + 3)?;
          }
       }
       writeln!(dest, "</svg>")?;
