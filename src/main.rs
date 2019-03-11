@@ -1,80 +1,72 @@
-mod grid;
+#![feature(duration_float)]
 
-use std::io::BufWriter;
-use std::fs::File;
+mod grid;
+mod mazegen;
+mod pathfinding;
+
 use grid::Grid;
-use rand::{FromEntropy, Rng};
-use rand::seq::{SliceRandom, IteratorRandom};
+use mazegen::{aldous_broder, binary_tree, sidewinder};
+use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
+use std::fs::File;
+use std::io::{BufWriter, Write};
+use std::time::Instant;
+
+/*
+
+struct GuiState;
+
+impl Layout for GuiState {
+   fn layout(&self, info: LayoutInfo<Self>) -> Dom<Self> {
+      if let Some((svg_cache, svg_layers)) = self.svg {
+         Svg::with_layers(svg_layers).dom(&info.window, &svg_cache)
+      } else {
+         Button::with_label("Load SVG file").dom().with_callback(On::MouseUp, load_svg)
+      }
+   }
+}
+
+fn load_svg(app_state: &mut AppState<GuiState>, _: &mut CallbackInfo<GuiState>) -> UpdateScreen {
+    let mut svg_cache = SvgCache::empty();
+    let svg_layers = svg_cache.add_svg("maze.svg").unwrap();
+    app_state.data.modify(|data| data.svg = Some((svg_cache, svg_layers)));
+    Redraw
+}
+
+*/
 
 fn main() {
-   let mut grid = Grid::new(12, 12);
+   let mut grid = Grid::new(250, 250);
    let mut rng = XorShiftRng::from_entropy();
-   //binary_tree(&mut grid, &mut rng);
-   //sidewinder(&mut grid, &mut rng);
-   aldous_broder(&mut grid, &mut rng);
+   // binary_tree(&mut grid, &mut rng);
+   sidewinder(&mut grid, &mut rng);
+   let mut start_time = Instant::now();
+   //aldous_broder(&mut grid, &mut rng);
+   println!("mazegen elapsed: {}", start_time.elapsed().as_float_secs());
+   start_time = Instant::now();
+   let path = pathfinding::uniform_cost(&grid).unwrap();
+   println!("pathfinding elapsed: {}", start_time.elapsed().as_float_secs());
    let mut destination = BufWriter::new(File::create("maze.svg").unwrap());
-   grid.write_as_svg(&mut destination).unwrap();
-}
+   writeln!(
+         destination,
+         "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">",
+         (grid.width * 3) + 6,
+         (grid.height * 3) + 6
+      ).unwrap();
+   grid.write_grid_as_svg(&mut destination).unwrap();
+   for i in path.into_iter() {
+      let row = i / grid.width;
+      let col = i % grid.width;
 
-fn binary_tree<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   for i in 0..grid.inner.len() {
-      if grid.has_neighbor_north(i) && grid.has_neighbor_east(i) {
-         if rng.gen_bool(0.5) {
-            grid.connect_cell_north(i);
-         } else {
-            grid.connect_cell_east(i);
-         }
-      } else if grid.has_neighbor_north(i) {
-         grid.connect_cell_north(i);
-      } else if grid.has_neighbor_east(i) {
-         grid.connect_cell_east(i);
-      }
+      let upper_left_y = row * 3;
+      let upper_left_x = col * 3;
+      writeln!(destination, "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0px;stroke:#ededed;fill:#ff0000\" />", upper_left_x, upper_left_y, 3, 3).unwrap();
    }
-}
+   grid.write_maze_as_svg(&mut destination).unwrap();
+   writeln!(destination, "</svg>").unwrap();
+   //println!("{:?}", pathfinding::uniform_cost(&grid).unwrap());
 
-fn sidewinder<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   let mut cur_run = vec![];
-   for i in 0..grid.inner.len() {
-      if grid.has_neighbor_north(i) && grid.has_neighbor_east(i) {
-         cur_run.push(i);
-         if rng.gen_bool(0.5) {
-            grid.connect_cell_north(*cur_run.choose(rng).unwrap());
-            cur_run.clear();
-         } else {
-            grid.connect_cell_east(i);
-         }
-      } else if grid.has_neighbor_north(i) {
-         cur_run.push(i);
-         grid.connect_cell_north(*cur_run.choose(rng).unwrap());
-         cur_run.clear();
-      } else if grid.has_neighbor_east(i) {
-         grid.connect_cell_east(i);
-      }
-   }
-}
-
-fn aldous_broder<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   let mut neighbors = vec![];
-   let mut visited = vec![false; grid.inner.len()];
-   let mut cur_index = (0..grid.inner.len()).choose(rng).unwrap();
-   visited[cur_index] = true;
-   while visited.iter().any(|x| !x) {
-      neighbors.clear();
-      grid.neighbors(cur_index, &mut neighbors);
-      let target = *neighbors.choose(rng).unwrap();
-      if !visited[target] {
-         if grid.has_neighbor_north(cur_index) && target == cur_index - grid.width {
-            grid.connect_cell_north(cur_index);
-         } else if target == cur_index + grid.width {
-            grid.connect_cell_south(cur_index);
-         } else if target == cur_index + 1 {
-            grid.connect_cell_east(cur_index)
-         } else {
-            grid.connect_cell_west(cur_index);
-         }
-      }
-      cur_index = target;
-      visited[cur_index] = true;
-   }
+   //let app = App::new(GuiState {}, AppConfig::default());
+   //let window = Window::new(WindowCreateOptions::default(), css::native()).unwrap();
+   //app.run(window).unwrap();
 }

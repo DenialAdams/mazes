@@ -1,6 +1,6 @@
 use std::fmt::{self, Display, Formatter};
-use std::ops::{Index, IndexMut};
 use std::io::{self, Write};
+use std::ops::{Index, IndexMut};
 
 #[derive(Copy, Clone, Default)]
 pub struct Cell {
@@ -171,8 +171,7 @@ impl Grid {
       self.inner.len()
    }
 
-   pub fn write_as_svg<W: Write>(&self, dest: &mut W) -> io::Result<()> {
-      writeln!(dest, "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">", (self.width * 3) + 6, (self.height * 3) + 6)?;
+   pub fn write_grid_as_svg<W: Write>(&self, dest: &mut W) -> io::Result<()> {
       // first, we draw a simple grid
       for i in 0..self.inner.len() {
          let row = i / self.width;
@@ -182,6 +181,10 @@ impl Grid {
          let upper_left_x = col * 3;
          writeln!(dest, "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ededed;fill:#ffffff\" />", upper_left_x, upper_left_y, 3, 3)?;
       }
+      Ok(())
+   }
+
+   pub fn write_maze_as_svg<W: Write>(&self, dest: &mut W) -> io::Result<()> {
       // top wall
       writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"{}\" y2=\"0\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", self.width * 3)?;
       // west wall
@@ -201,7 +204,6 @@ impl Grid {
             writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", upper_left_x + 3, upper_left_y, upper_left_x + 3, upper_left_y + 3)?;
          }
       }
-      writeln!(dest, "</svg>")?;
       Ok(())
    }
 }
