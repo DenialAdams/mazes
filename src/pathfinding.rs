@@ -1,50 +1,86 @@
 use crate::grid::Grid;
-use fxhash::FxHashSet;
+use fxhash::FxHashMap;
+use std::cmp::{Ord, Ordering, PartialOrd, Reverse};
 use std::collections::BinaryHeap;
-use std::cmp::{PartialOrd, Ord, Ordering, Reverse};
 
 #[derive(PartialEq, Eq)]
 struct Node {
+   f: usize,
    i: usize,
    path: Box<[usize]>,
 }
 
 impl PartialOrd for Node {
-    fn partial_cmp(&self, other: &Node) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+   fn partial_cmp(&self, other: &Node) -> Option<Ordering> {
+      Some(self.cmp(other))
+   }
 }
 
 impl Ord for Node {
-    fn cmp(&self, other: &Node) -> Ordering {
-        self.path.len().cmp(&other.path.len())
-    }
+   fn cmp(&self, other: &Node) -> Ordering {
+      self.f.cmp(&other.f)
+   }
 }
 
-pub fn uniform_cost(grid: &Grid) -> Option<Box<[usize]>> {
+pub fn null_h(_: usize, _: usize, _: usize) -> usize {
+   0
+}
+
+/// Calculate |x - y| while avoiding underflow
+fn abs_diff(x: usize, y: usize) -> usize {
+   if x > y {
+      x - y
+   } else {
+      y - x
+   }
+}
+
+pub fn manhattan_h(i: usize, goal: usize, width: usize) -> usize {
+   let i_row = i / width;
+   let i_col = i % width;
+
+   let goal_row = goal / width;
+   let goal_col = goal % width;
+
+   abs_diff(i_col, goal_col) + abs_diff(i_row, goal_row)
+}
+
+pub fn a_star<F>(grid: &Grid, h: F) -> Option<Box<[usize]>>
+where
+   F: Fn(usize, usize, usize) -> usize,
+{
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
    let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
+   let start = 0;
+   let goal = grid.size() - 1;
    open.push(Reverse(Node {
-      i: 0,
+      f: h(start, goal, grid.width),
+      i: start,
       path: vec![].into_boxed_slice(),
    }));
-   let goal = grid.size() - 1;
-   let mut closed: FxHashSet<usize> = FxHashSet::with_hasher(Default::default());
+   let mut closed: FxHashMap<usize, usize> = FxHashMap::with_hasher(Default::default());
    while let Some(cur_node) = open.pop() {
       let cur_node = cur_node.0;
-      // because this is a BFS,
-      // if we've already reached this state
-      // it was reached in fewer path (or the same number of path),
+      // if we've already reached this state in fewer actions (or the same number of actions),
       // we can not possibly do better
-      if closed.get(&cur_node.i).is_some() {
+      if closed
+         .get(&cur_node.i)
+         .map(|x| *x <= cur_node.path.len())
+         .unwrap_or(false)
+      {
          continue;
       }
+
       if cur_node.i == goal {
          let mut final_path = cur_node.path.to_vec();
          final_path.push(goal);
+         println!("{} nodes generated {} nodes expanded", nodes_generated, nodes_expanded);
          return Some(final_path.into_boxed_slice());
       }
+
+      let f = cur_node.path.len() + h(cur_node.i, goal, grid.width);
+
       // Expand
       {
          // N
@@ -52,6 +88,7 @@ pub fn uniform_cost(grid: &Grid) -> Option<Box<[usize]>> {
             let mut new_path = cur_node.path.to_vec();
             new_path.push(cur_node.i);
             open.push(Reverse(Node {
+               f,
                i: cur_node.i - grid.width,
                path: new_path.into_boxed_slice(),
             }));
@@ -62,6 +99,7 @@ pub fn uniform_cost(grid: &Grid) -> Option<Box<[usize]>> {
             let mut new_path = cur_node.path.to_vec();
             new_path.push(cur_node.i);
             open.push(Reverse(Node {
+               f,
                i: cur_node.i + grid.width,
                path: new_path.into_boxed_slice(),
             }));
@@ -72,6 +110,7 @@ pub fn uniform_cost(grid: &Grid) -> Option<Box<[usize]>> {
             let mut new_path = cur_node.path.to_vec();
             new_path.push(cur_node.i);
             open.push(Reverse(Node {
+               f,
                i: cur_node.i + 1,
                path: new_path.into_boxed_slice(),
             }));
@@ -82,6 +121,7 @@ pub fn uniform_cost(grid: &Grid) -> Option<Box<[usize]>> {
             let mut new_path = cur_node.path.to_vec();
             new_path.push(cur_node.i);
             open.push(Reverse(Node {
+               f,
                i: cur_node.i - 1,
                path: new_path.into_boxed_slice(),
             }));
@@ -89,7 +129,7 @@ pub fn uniform_cost(grid: &Grid) -> Option<Box<[usize]>> {
          }
       }
       nodes_expanded += 1;
-      closed.insert(cur_node.i);
+      closed.insert(cur_node.i, cur_node.path.len());
    }
    None
 }

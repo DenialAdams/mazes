@@ -39,20 +39,24 @@ fn main() {
    let mut grid = Grid::new(250, 250);
    let mut rng = XorShiftRng::from_entropy();
    // binary_tree(&mut grid, &mut rng);
-   sidewinder(&mut grid, &mut rng);
+   //sidewinder(&mut grid, &mut rng);
    let mut start_time = Instant::now();
-   //aldous_broder(&mut grid, &mut rng);
+   aldous_broder(&mut grid, &mut rng);
    println!("mazegen elapsed: {}", start_time.elapsed().as_float_secs());
    start_time = Instant::now();
-   let path = pathfinding::uniform_cost(&grid).unwrap();
-   println!("pathfinding elapsed: {}", start_time.elapsed().as_float_secs());
+   let path = pathfinding::a_star(&grid, pathfinding::null_h).unwrap();
+   println!("uniform cost search elapsed: {}", start_time.elapsed().as_float_secs());
+   start_time = Instant::now();
+   let path = pathfinding::a_star(&grid, pathfinding::manhattan_h).unwrap();
+   println!("astar elapsed: {}", start_time.elapsed().as_float_secs());
    let mut destination = BufWriter::new(File::create("maze.svg").unwrap());
    writeln!(
-         destination,
-         "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">",
-         (grid.width * 3) + 6,
-         (grid.height * 3) + 6
-      ).unwrap();
+      destination,
+      "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">",
+      (grid.width * 3) + 6,
+      (grid.height * 3) + 6
+   )
+   .unwrap();
    grid.write_grid_as_svg(&mut destination).unwrap();
    for i in path.into_iter() {
       let row = i / grid.width;
@@ -60,7 +64,12 @@ fn main() {
 
       let upper_left_y = row * 3;
       let upper_left_x = col * 3;
-      writeln!(destination, "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0px;stroke:#ededed;fill:#ff0000\" />", upper_left_x, upper_left_y, 3, 3).unwrap();
+      writeln!(
+         destination,
+         "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0px;stroke:#ededed;fill:#ff0000\" />",
+         upper_left_x, upper_left_y, 3, 3
+      )
+      .unwrap();
    }
    grid.write_maze_as_svg(&mut destination).unwrap();
    writeln!(destination, "</svg>").unwrap();
