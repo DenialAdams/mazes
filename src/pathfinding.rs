@@ -45,12 +45,20 @@ pub fn manhattan_h(i: usize, goal: usize, width: usize) -> usize {
    abs_diff(i_col, goal_col) + abs_diff(i_row, goal_row)
 }
 
-pub fn a_star<F>(grid: &Grid, h: F) -> Option<Box<[usize]>>
+#[derive(Copy, Clone, PartialEq)]
+pub enum DiagStatus {
+   Unexplored,
+   Generated,
+   Expanded,
+}
+
+pub fn a_star<F>(grid: &Grid, h: F) -> Option<(Box<[usize]>, Box<[DiagStatus]>)>
 where
    F: Fn(usize, usize, usize) -> usize,
 {
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
+   let mut diag_map = vec![DiagStatus::Unexplored; grid.size()].into_boxed_slice();
    let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
    let start = 0;
    let goal = grid.size() - 1;
@@ -76,7 +84,7 @@ where
          let mut final_path = cur_node.path.to_vec();
          final_path.push(goal);
          println!("{} nodes generated {} nodes expanded", nodes_generated, nodes_expanded);
-         return Some(final_path.into_boxed_slice());
+         return Some((final_path.into_boxed_slice(), diag_map));
       }
 
       let f = cur_node.path.len() + h(cur_node.i, goal, grid.width);
@@ -93,6 +101,9 @@ where
                path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
+            if diag_map[cur_node.i - grid.width] == DiagStatus::Unexplored {
+               diag_map[cur_node.i - grid.width] = DiagStatus::Generated;
+            }
          }
          // S
          if grid.has_neighbor_south(cur_node.i) && grid[cur_node.i].south_connected {
@@ -104,6 +115,9 @@ where
                path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
+            if diag_map[cur_node.i + grid.width] == DiagStatus::Unexplored {
+               diag_map[cur_node.i + grid.width] = DiagStatus::Generated;
+            }
          }
          // E
          if grid.has_neighbor_east(cur_node.i) && grid[cur_node.i].east_connected {
@@ -115,6 +129,9 @@ where
                path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
+            if diag_map[cur_node.i + 1] == DiagStatus::Unexplored {
+               diag_map[cur_node.i + 1] = DiagStatus::Generated;
+            }
          }
          // W
          if grid.has_neighbor_west(cur_node.i) && grid[cur_node.i].west_connected {
@@ -126,9 +143,13 @@ where
                path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
+            if diag_map[cur_node.i - 1] == DiagStatus::Unexplored {
+               diag_map[cur_node.i - 1] = DiagStatus::Generated;
+            }
          }
       }
       nodes_expanded += 1;
+      diag_map[cur_node.i] = DiagStatus::Expanded;
       closed.insert(cur_node.i, cur_node.path.len());
    }
    None

@@ -11,6 +11,7 @@ use rand_xorshift::XorShiftRng;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::time::Instant;
+use rand::SeedableRng;
 
 /*
 
@@ -36,8 +37,9 @@ fn load_svg(app_state: &mut AppState<GuiState>, _: &mut CallbackInfo<GuiState>) 
 */
 
 fn main() {
-   let mut grid = Grid::new(250, 250);
-   let mut rng = XorShiftRng::from_entropy();
+   let mut grid = Grid::new(75, 75);
+   //let mut rng = XorShiftRng::from_entropy();
+   let mut rng = XorShiftRng::seed_from_u64(1);
    // binary_tree(&mut grid, &mut rng);
    //sidewinder(&mut grid, &mut rng);
    let mut start_time = Instant::now();
@@ -58,7 +60,32 @@ fn main() {
    )
    .unwrap();
    grid.write_grid_as_svg(&mut destination).unwrap();
-   for i in path.into_iter() {
+   for (i, x) in path.1.into_iter().enumerate() {
+      let row = i / grid.width;
+      let col = i % grid.width;
+
+      let upper_left_y = row * 3;
+      let upper_left_x = col * 3;
+      use pathfinding::DiagStatus;
+      match x {
+         DiagStatus::Unexplored => {}
+         DiagStatus::Generated => {
+            writeln!(
+               destination,
+               "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0px;stroke:#ededed;fill:#ffff00\" />",
+               upper_left_x, upper_left_y, 3, 3
+            ).unwrap();
+         }
+         DiagStatus::Expanded => {
+            writeln!(
+               destination,
+               "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0px;stroke:#ededed;fill:#ff8c00\" />",
+               upper_left_x, upper_left_y, 3, 3
+            ).unwrap();
+         }
+      }
+   }
+   for i in path.0.into_iter() {
       let row = i / grid.width;
       let col = i % grid.width;
 
