@@ -6,12 +6,12 @@ mod pathfinding;
 
 use grid::Grid;
 use mazegen::{aldous_broder, binary_tree, sidewinder};
+use pathfinding::PathData;
 use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
 use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::io::{self, BufWriter, Write};
 use std::time::Instant;
-use rand::SeedableRng;
 
 /*
 
@@ -36,73 +36,56 @@ fn load_svg(app_state: &mut AppState<GuiState>, _: &mut CallbackInfo<GuiState>) 
 
 */
 
-fn main() {
-   let mut grid = Grid::new(75, 75);
-   //let mut rng = XorShiftRng::from_entropy();
-   let mut rng = XorShiftRng::seed_from_u64(1);
-   // binary_tree(&mut grid, &mut rng);
-   //sidewinder(&mut grid, &mut rng);
-   let mut start_time = Instant::now();
-   aldous_broder(&mut grid, &mut rng);
-   println!("mazegen elapsed: {}", start_time.elapsed().as_float_secs());
-   start_time = Instant::now();
-   let path = pathfinding::a_star(&grid, pathfinding::null_h).unwrap();
-   println!("uniform cost search elapsed: {}", start_time.elapsed().as_float_secs());
-   start_time = Instant::now();
-   let path = pathfinding::a_star(&grid, pathfinding::manhattan_h).unwrap();
-   println!("astar elapsed: {}", start_time.elapsed().as_float_secs());
-   let mut destination = BufWriter::new(File::create("maze.svg").unwrap());
+fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
+   let mut destination = BufWriter::new(File::create(format!("{}.svg", name)).unwrap());
    writeln!(
       destination,
       "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">",
       (grid.width * 3) + 6,
       (grid.height * 3) + 6
-   )
-   .unwrap();
-   grid.write_grid_as_svg(&mut destination).unwrap();
-   for (i, x) in path.1.into_iter().enumerate() {
-      let row = i / grid.width;
-      let col = i % grid.width;
+   )?;
+   Ok(destination)
+}
 
-      let upper_left_y = row * 3;
-      let upper_left_x = col * 3;
-      use pathfinding::DiagStatus;
-      match x {
-         DiagStatus::Unexplored => {}
-         DiagStatus::Generated => {
-            writeln!(
-               destination,
-               "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0px;stroke:#ededed;fill:#ffff00\" />",
-               upper_left_x, upper_left_y, 3, 3
-            ).unwrap();
-         }
-         DiagStatus::Expanded => {
-            writeln!(
-               destination,
-               "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0px;stroke:#ededed;fill:#ff8c00\" />",
-               upper_left_x, upper_left_y, 3, 3
-            ).unwrap();
-         }
-      }
+fn write_path_and_maze_to_svg(name: &'static str, path_data: &PathData, grid: &Grid) -> io::Result<()> {
+   let mut dest = init_svg(name, grid)?;
+   pathfinding::write_diag_to_svg(&path_data.diag, grid.width, &mut dest)?;
+   pathfinding::write_path_to_svg(&path_data.path, grid.width, &mut dest)?;
+   grid.write_maze_as_svg(&mut dest)?;
+   writeln!(dest, "</svg>")
+}
+
+fn main() {
+   let mut grid = Grid::new(12, 12);
+   let mut rng = XorShiftRng::from_entropy();
+   // mazegen
+   {
+      let start_time = Instant::now();
+      // binary_tree(&mut grid, &mut rng);
+      //sidewinder(&mut grid, &mut rng);
+      aldous_broder(&mut grid, &mut rng);
+      println!("mazegen elapsed: {}", start_time.elapsed().as_float_secs());
    }
-   for i in path.0.into_iter() {
-      let row = i / grid.width;
-      let col = i % grid.width;
-
-      let upper_left_y = row * 3;
-      let upper_left_x = col * 3;
-      writeln!(
-         destination,
-         "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0px;stroke:#ededed;fill:#ff0000\" />",
-         upper_left_x, upper_left_y, 3, 3
-      )
-      .unwrap();
+   // uniform cost search
+   let ucs_path = {
+      let start_time = Instant::now();
+      let path = pathfinding::a_star(&grid, pathfinding::null_h).unwrap();
+      println!("uniform cost search elapsed: {}", start_time.elapsed().as_float_secs());
+      path
+   };
+   // a star
+   let astar_path = {
+      let start_time = Instant::now();
+      let path = pathfinding::a_star(&grid, pathfinding::manhattan_h).unwrap();
+      println!("astar elapsed: {}", start_time.elapsed().as_float_secs());
+      path
+   };
+   // write the maze, clean
+   {
+      let mut dest = init_svg("maze", &grid).unwrap();
+      grid.write_maze_as_svg(&mut dest).unwrap();
+      writeln!(dest, "</svg>").unwrap();
    }
-   grid.write_maze_as_svg(&mut destination).unwrap();
-   writeln!(destination, "</svg>").unwrap();
-   //println!("{:?}", pathfinding::uniform_cost(&grid).unwrap());
-
-   //let app = App::new(GuiState {}, AppConfig::default());
-   //let window = Window::new(WindowCreateOptions::default(), css::native()).unwrap();
-   //app.run(window).unwrap();
+   write_path_and_maze_to_svg("astar", &astar_path, &grid).unwrap();
+   write_path_and_maze_to_svg("ucs", &ucs_path, &grid).unwrap();
 }

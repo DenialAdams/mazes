@@ -2,6 +2,7 @@ use crate::grid::Grid;
 use fxhash::FxHashMap;
 use std::cmp::{Ord, Ordering, PartialOrd, Reverse};
 use std::collections::BinaryHeap;
+use std::io::{self, Write};
 
 #[derive(PartialEq, Eq)]
 struct Node {
@@ -52,7 +53,59 @@ pub enum DiagStatus {
    Expanded,
 }
 
-pub fn a_star<F>(grid: &Grid, h: F) -> Option<(Box<[usize]>, Box<[DiagStatus]>)>
+pub struct PathData {
+   pub path: Box<[usize]>,
+   pub diag: Box<[DiagStatus]>,
+   pub nodes_generated: u64,
+   pub nodes_expanded: u64,
+}
+
+pub fn write_diag_to_svg<W: Write>(diag: &[DiagStatus], width: usize, dest: &mut W) -> io::Result<()> {
+   for (i, x) in diag.iter().enumerate() {
+      let row = i / width;
+      let col = i % width;
+
+      let upper_left_y = row * 3;
+      let upper_left_x = col * 3;
+
+      match x {
+         DiagStatus::Unexplored => {}
+         DiagStatus::Generated => {
+            writeln!(
+               dest,
+               "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ffff00;fill:#ffff00\" />",
+               upper_left_x, upper_left_y, 3, 3
+            )?
+         }
+         DiagStatus::Expanded => {
+            writeln!(
+               dest,
+               "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ff8c00;fill:#ff8c00\" />",
+               upper_left_x, upper_left_y, 3, 3
+            )?
+         }
+      }
+   }
+   Ok(())
+}
+
+pub fn write_path_to_svg<W: Write>(path: &[usize], width: usize, dest: &mut W) -> io::Result<()> {
+   for i in path.iter() {
+      let row = i / width;
+      let col = i % width;
+
+      let upper_left_y = row * 3;
+      let upper_left_x = col * 3;
+      writeln!(
+         dest,
+         "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ff0000;fill:#ff0000\" />",
+         upper_left_x, upper_left_y, 3, 3
+      )?
+   }
+   Ok(())
+}
+
+pub fn a_star<F>(grid: &Grid, h: F) -> Option<PathData>
 where
    F: Fn(usize, usize, usize) -> usize,
 {
@@ -84,7 +137,12 @@ where
          let mut final_path = cur_node.path.to_vec();
          final_path.push(goal);
          println!("{} nodes generated {} nodes expanded", nodes_generated, nodes_expanded);
-         return Some((final_path.into_boxed_slice(), diag_map));
+         return Some(PathData {
+            path: final_path.into_boxed_slice(),
+            diag: diag_map,
+            nodes_generated,
+            nodes_expanded,
+         });
       }
 
       let f = cur_node.path.len() + h(cur_node.i, goal, grid.width);

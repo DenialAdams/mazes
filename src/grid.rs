@@ -171,7 +171,7 @@ impl Grid {
       self.inner.len()
    }
 
-   pub fn write_grid_as_svg<W: Write>(&self, dest: &mut W) -> io::Result<()> {
+   pub fn write_skeleton_as_svg<W: Write>(&self, dest: &mut W) -> io::Result<()> {
       // first, we draw a simple grid
       for i in 0..self.inner.len() {
          let row = i / self.width;
