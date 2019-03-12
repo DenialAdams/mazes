@@ -180,8 +180,7 @@ where
       path: vec![].into_boxed_slice(),
    }));
    let mut closed: FxHashMap<usize, usize> = FxHashMap::with_hasher(Default::default());
-   while let Some(cur_node) = open.pop() {
-      let cur_node = cur_node.0;
+   while let Some(Reverse(cur_node)) = open.pop() {
       // if we've already reached this state in fewer actions (or the same number of actions),
       // we can not possibly do better
       if closed
