@@ -6,7 +6,7 @@ use std::io::{self, Write};
 
 #[derive(PartialEq, Eq)]
 struct Node {
-   f: usize,
+   priority: usize,
    i: usize,
    path: Box<[usize]>,
 }
@@ -19,7 +19,7 @@ impl PartialOrd for Node {
 
 impl Ord for Node {
    fn cmp(&self, other: &Node) -> Ordering {
-      self.f.cmp(&other.f)
+      self.priority.cmp(&other.priority)
    }
 }
 
@@ -106,6 +106,64 @@ pub fn write_path_to_svg<W: Write>(path: &[usize], width: usize, dest: &mut W) -
    Ok(())
 }
 
+fn expand_node(
+   cur_node: &Node,
+   grid: &Grid,
+   open: &mut BinaryHeap<Reverse<Node>>,
+   priority: usize,
+   diag_map: &mut [DiagStatus],
+   nodes_generated: &mut u64,
+) {
+   // N
+   if grid.has_neighbor_north(cur_node.i) && grid[cur_node.i].north_connected {
+      let mut new_path = cur_node.path.to_vec();
+      new_path.push(cur_node.i);
+      open.push(Reverse(Node {
+         priority,
+         i: cur_node.i - grid.width,
+         path: new_path.into_boxed_slice(),
+      }));
+      *nodes_generated += 1;
+      diag_map[cur_node.i - grid.width].0 |= DIAG_GENERATED;
+   }
+   // S
+   if grid.has_neighbor_south(cur_node.i) && grid[cur_node.i].south_connected {
+      let mut new_path = cur_node.path.to_vec();
+      new_path.push(cur_node.i);
+      open.push(Reverse(Node {
+         priority,
+         i: cur_node.i + grid.width,
+         path: new_path.into_boxed_slice(),
+      }));
+      *nodes_generated += 1;
+      diag_map[cur_node.i + grid.width].0 |= DIAG_GENERATED;
+   }
+   // E
+   if grid.has_neighbor_east(cur_node.i) && grid[cur_node.i].east_connected {
+      let mut new_path = cur_node.path.to_vec();
+      new_path.push(cur_node.i);
+      open.push(Reverse(Node {
+         priority,
+         i: cur_node.i + 1,
+         path: new_path.into_boxed_slice(),
+      }));
+      *nodes_generated += 1;
+      diag_map[cur_node.i + 1].0 |= DIAG_GENERATED;
+   }
+   // W
+   if grid.has_neighbor_west(cur_node.i) && grid[cur_node.i].west_connected {
+      let mut new_path = cur_node.path.to_vec();
+      new_path.push(cur_node.i);
+      open.push(Reverse(Node {
+         priority,
+         i: cur_node.i - 1,
+         path: new_path.into_boxed_slice(),
+      }));
+      *nodes_generated += 1;
+      diag_map[cur_node.i - 1].0 |= DIAG_GENERATED;
+   }
+}
+
 pub fn a_star<F>(grid: &Grid, h: F) -> Option<PathData>
 where
    F: Fn(usize, usize, usize) -> usize,
@@ -117,7 +175,7 @@ where
    let start = 0;
    let goal = grid.size() - 1;
    open.push(Reverse(Node {
-      f: h(start, goal, grid.width),
+      priority: 0 + h(start, goal, grid.width),
       i: start,
       path: vec![].into_boxed_slice(),
    }));
@@ -147,58 +205,7 @@ where
       }
 
       let f = cur_node.path.len() + h(cur_node.i, goal, grid.width);
-
-      // Expand
-      {
-         // N
-         if grid.has_neighbor_north(cur_node.i) && grid[cur_node.i].north_connected {
-            let mut new_path = cur_node.path.to_vec();
-            new_path.push(cur_node.i);
-            open.push(Reverse(Node {
-               f,
-               i: cur_node.i - grid.width,
-               path: new_path.into_boxed_slice(),
-            }));
-            nodes_generated += 1;
-            diag_map[cur_node.i - grid.width].0 |= DIAG_GENERATED;
-         }
-         // S
-         if grid.has_neighbor_south(cur_node.i) && grid[cur_node.i].south_connected {
-            let mut new_path = cur_node.path.to_vec();
-            new_path.push(cur_node.i);
-            open.push(Reverse(Node {
-               f,
-               i: cur_node.i + grid.width,
-               path: new_path.into_boxed_slice(),
-            }));
-            nodes_generated += 1;
-            diag_map[cur_node.i + grid.width].0 |= DIAG_GENERATED;
-         }
-         // E
-         if grid.has_neighbor_east(cur_node.i) && grid[cur_node.i].east_connected {
-            let mut new_path = cur_node.path.to_vec();
-            new_path.push(cur_node.i);
-            open.push(Reverse(Node {
-               f,
-               i: cur_node.i + 1,
-               path: new_path.into_boxed_slice(),
-            }));
-            nodes_generated += 1;
-            diag_map[cur_node.i + 1].0 |= DIAG_GENERATED;
-         }
-         // W
-         if grid.has_neighbor_west(cur_node.i) && grid[cur_node.i].west_connected {
-            let mut new_path = cur_node.path.to_vec();
-            new_path.push(cur_node.i);
-            open.push(Reverse(Node {
-               f,
-               i: cur_node.i - 1,
-               path: new_path.into_boxed_slice(),
-            }));
-            nodes_generated += 1;
-            diag_map[cur_node.i - 1].0 |= DIAG_GENERATED;
-         }
-      }
+      expand_node(&cur_node, grid, &mut open, f, &mut diag_map, &mut nodes_generated);
       nodes_expanded += 1;
       diag_map[cur_node.i].0 = DIAG_EXPANDED;
       closed.insert(cur_node.i, cur_node.path.len());
