@@ -211,3 +211,51 @@ where
    }
    None
 }
+
+pub fn greedy_best_first<F>(grid: &Grid, h: F) -> Option<PathData>
+where
+   F: Fn(usize, usize, usize) -> usize,
+{
+   let mut nodes_generated = 0;
+   let mut nodes_expanded = 0;
+   let mut diag_map = vec![DiagStatus(DIAG_UNEXPLORED); grid.size()].into_boxed_slice();
+   let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
+   let start = 0;
+   let goal = grid.size() - 1;
+   open.push(Reverse(Node {
+      priority: 0 + h(start, goal, grid.width),
+      i: start,
+      path: vec![].into_boxed_slice(),
+   }));
+   let mut closed: FxHashMap<usize, usize> = FxHashMap::with_hasher(Default::default());
+   while let Some(Reverse(cur_node)) = open.pop() {
+      // if we've already reached this state in fewer actions (or the same number of actions),
+      // we can not possibly do better
+      if closed
+         .get(&cur_node.i)
+         .map(|x| *x <= cur_node.path.len())
+         .unwrap_or(false)
+      {
+         continue;
+      }
+
+      if cur_node.i == goal {
+         let mut final_path = cur_node.path.to_vec();
+         final_path.push(goal);
+         println!("{} nodes generated {} nodes expanded", nodes_generated, nodes_expanded);
+         return Some(PathData {
+            path: final_path.into_boxed_slice(),
+            diag: diag_map,
+            nodes_generated,
+            nodes_expanded,
+         });
+      }
+
+      let f = h(cur_node.i, goal, grid.width);
+      expand_node(&cur_node, grid, &mut open, f, &mut diag_map, &mut nodes_generated);
+      nodes_expanded += 1;
+      diag_map[cur_node.i].0 = DIAG_EXPANDED;
+      closed.insert(cur_node.i, cur_node.path.len());
+   }
+   None
+}

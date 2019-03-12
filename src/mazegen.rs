@@ -41,8 +41,8 @@ pub fn sidewinder<R: Rng>(grid: &mut Grid, rng: &mut R) {
 
 pub fn aldous_broder<R: Rng>(grid: &mut Grid, rng: &mut R) {
    let mut neighbors = vec![];
-   let mut visited = vec![false; grid.inner.len()];
-   let mut cur_index = (0..grid.inner.len()).choose(rng).unwrap();
+   let mut visited = vec![false; grid.size()];
+   let mut cur_index = (0..grid.size()).choose(rng).unwrap();
    visited[cur_index] = true;
    while visited.iter().any(|x| !x) {
       neighbors.clear();
@@ -58,6 +58,69 @@ pub fn aldous_broder<R: Rng>(grid: &mut Grid, rng: &mut R) {
          } else {
             grid.connect_cell_west(cur_index);
          }
+      }
+      cur_index = target;
+      visited[cur_index] = true;
+   }
+}
+
+pub fn wilson<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   let mut neighbors = vec![];
+   let mut visited = vec![false; grid.size()];
+   let mut walker_path: Vec<usize> = vec![(0..grid.size()).choose(rng).unwrap()];
+   visited[0] = true;
+   while visited.iter().any(|x| !x) {
+      if visited[*walker_path.last().unwrap()] {
+         for window in walker_path.windows(2) {
+            visited[window[0]] = true;
+            visited[window[1]] = true;
+            if grid.has_neighbor_north(window[0]) && window[1] == window[0] - grid.width {
+               grid.connect_cell_north(window[0]);
+            } else if window[1] == window[0] + grid.width {
+               grid.connect_cell_south(window[0]);
+            } else if window[1] == window[0] + 1 {
+               grid.connect_cell_east(window[0])
+            } else {
+               grid.connect_cell_west(window[0]);
+            }
+         }
+         walker_path.clear();
+         walker_path.push((0..grid.size()).choose(rng).unwrap());
+      } else {
+         neighbors.clear();
+         grid.neighbors(*walker_path.last().unwrap(), &mut neighbors);
+         let target = *neighbors.choose(rng).unwrap();
+         if let Some(i) = walker_path.iter().rposition(|i| *i == target) {
+            walker_path.truncate(i + 1);
+         } else {
+            walker_path.push(target);
+         }
+      }
+   }
+}
+
+pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   let mut neighbors = vec![];
+   let mut visited = vec![false; grid.size()];
+   visited[0] = true;
+   let mut cur_index = 0;
+   loop {
+      neighbors.clear();
+      grid.neighbors(cur_index, &mut neighbors);
+      neighbors.retain(|i| !visited[*i]);
+      if neighbors.is_empty() {
+         // HUNT
+         // TODO
+      }
+      let target = *neighbors.choose(rng).unwrap();
+      if grid.has_neighbor_north(cur_index) && target == cur_index - grid.width {
+         grid.connect_cell_north(cur_index);
+      } else if target == cur_index + grid.width {
+         grid.connect_cell_south(cur_index);
+      } else if target == cur_index + 1 {
+         grid.connect_cell_east(cur_index)
+      } else {
+         grid.connect_cell_west(cur_index);
       }
       cur_index = target;
       visited[cur_index] = true;

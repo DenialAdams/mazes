@@ -5,7 +5,6 @@ mod mazegen;
 mod pathfinding;
 
 use grid::Grid;
-use mazegen::{aldous_broder, binary_tree, sidewinder};
 use pathfinding::PathData;
 use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
@@ -61,9 +60,11 @@ fn main() {
    // mazegen
    {
       let start_time = Instant::now();
-      // binary_tree(&mut grid, &mut rng);
-      //sidewinder(&mut grid, &mut rng);
-      aldous_broder(&mut grid, &mut rng);
+      //mazegen::binary_tree(&mut grid, &mut rng);
+      //mazegen::sidewinder(&mut grid, &mut rng);
+      //mazegen::aldous_broder(&mut grid, &mut rng);
+      //mazegen::wilson(&mut grid, &mut rng);
+      mazegen::hunt_and_kill(&mut grid, &mut rng);
       println!("mazegen elapsed: {}", start_time.elapsed().as_float_secs());
    }
    // uniform cost search
@@ -80,7 +81,14 @@ fn main() {
       println!("astar elapsed: {}", start_time.elapsed().as_float_secs());
       path
    };
-   // write the maze, clean
+   // greedy best first
+   let gbf_path = {
+      let start_time = Instant::now();
+      let path = pathfinding::greedy_best_first(&grid, pathfinding::manhattan_h).unwrap();
+      println!("greedy best first elapsed: {}", start_time.elapsed().as_float_secs());
+      path
+   };
+   // write the maze clean
    {
       let mut dest = init_svg("maze", &grid).unwrap();
       grid.write_maze_as_svg(&mut dest).unwrap();
@@ -88,4 +96,5 @@ fn main() {
    }
    write_path_and_maze_to_svg("astar", &astar_path, &grid).unwrap();
    write_path_and_maze_to_svg("ucs", &ucs_path, &grid).unwrap();
+   write_path_and_maze_to_svg("greedy_best_first", &gbf_path, &grid).unwrap();
 }
