@@ -95,9 +95,12 @@ pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
       if neighbors.is_empty() {
          // HUNT
          for i in 0..grid.size() {
+            // unvisited...
             if visited[i] {
                continue;
             }
+
+            // ...with at least one visited neighbor
             neighbors.clear();
             grid.neighbors(i, &mut neighbors);
             neighbors.retain(|i| visited[*i]);
@@ -105,8 +108,9 @@ pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
                continue;
             }
 
+            // choose a visited neighbor, connect
             let target = *neighbors.choose(rng).unwrap();
-            grid.connect_neighbors(cur_index, target);
+            grid.connect_neighbors(i, target);
             cur_index = i;
             visited[i] = true;
             continue 'outer;
