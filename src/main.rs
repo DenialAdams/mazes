@@ -85,7 +85,7 @@ fn main() {
       for (algo, avg) in averages {
          let pct = avg * 100.0 / (DEADEND_SIZE as f64);
          println!(
-            "{:>15} : {:>width$} ({}%)",
+            "{:>23} : {:>width$} ({}%)",
             format!("{}", algo),
             avg.round(),
             pct.round(),
@@ -102,7 +102,8 @@ fn main() {
       //mazegen::sidewinder(&mut grid, &mut rng);
       //mazegen::aldous_broder(&mut grid, &mut rng);
       //mazegen::wilson(&mut grid, &mut rng);
-      mazegen::hunt_and_kill(&mut grid, &mut rng);
+      //mazegen::hunt_and_kill(&mut grid, &mut rng);
+      mazegen::recursive_backtracker(&mut grid, &mut rng);
       println!("mazegen elapsed: {}", start_time.elapsed().as_float_secs());
       println!("{} dead-ends", grid.dead_ends().count());
    }

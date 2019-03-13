@@ -10,6 +10,7 @@ pub enum Algo {
    AldousBroder,
    Wilson,
    HuntAndKill,
+   RecursiveBacktracker
 }
 
 impl fmt::Display for Algo {
@@ -23,17 +24,19 @@ impl fmt::Display for Algo {
             Algo::AldousBroder => "Aldous-Broder",
             Algo::Wilson => "Wilsons's",
             Algo::HuntAndKill => "Hunt and Kill",
+            Algo::RecursiveBacktracker => "Recursive Backtracker",
          }
       )
    }
 }
 
-pub const ALGOS: [Algo; 5] = [
+pub const ALGOS: [Algo; 6] = [
    Algo::BinaryTree,
    Algo::Sidewinder,
    Algo::AldousBroder,
    Algo::Wilson,
    Algo::HuntAndKill,
+   Algo::RecursiveBacktracker,
 ];
 
 pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
@@ -43,6 +46,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
       Algo::AldousBroder => aldous_broder(grid, rng),
       Algo::Wilson => wilson(grid, rng),
       Algo::HuntAndKill => hunt_and_kill(grid, rng),
+      Algo::RecursiveBacktracker => recursive_backtracker(grid, rng),
    }
 }
 
@@ -84,7 +88,7 @@ pub fn sidewinder<R: Rng>(grid: &mut Grid, rng: &mut R) {
 }
 
 pub fn aldous_broder<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   let mut neighbors = vec![];
+   let mut neighbors = Vec::with_capacity(4);
    let mut visited = vec![false; grid.size()];
    let mut cur_index = (0..grid.size()).choose(rng).unwrap();
    visited[cur_index] = true;
@@ -101,7 +105,7 @@ pub fn aldous_broder<R: Rng>(grid: &mut Grid, rng: &mut R) {
 }
 
 pub fn wilson<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   let mut neighbors = vec![];
+   let mut neighbors = Vec::with_capacity(4);
    let mut visited = vec![false; grid.size()];
    let mut walker_path: Vec<usize> = vec![(0..grid.size()).choose(rng).unwrap()];
    visited[0] = true;
@@ -128,7 +132,7 @@ pub fn wilson<R: Rng>(grid: &mut Grid, rng: &mut R) {
 }
 
 pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   let mut neighbors = vec![];
+   let mut neighbors = Vec::with_capacity(4);
    let mut visited = vec![false; grid.size()];
    visited[0] = true;
    let mut cur_index = 0;
@@ -167,5 +171,25 @@ pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
       grid.connect_neighbors(cur_index, target);
       cur_index = target;
       visited[cur_index] = true;
+   }
+}
+
+pub fn recursive_backtracker<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   let mut neighbors = Vec::with_capacity(4);
+   let mut stack = vec![0];
+   let mut visited = vec![false; grid.size()];
+   visited[0] = true;
+   while !stack.is_empty() {
+      neighbors.clear();
+      grid.neighbors(*stack.last().unwrap(), &mut neighbors);
+      neighbors.retain(|i| !visited[*i]);
+      if neighbors.is_empty() {
+         stack.pop();
+      } else {
+         let target = *neighbors.choose(rng).unwrap();
+         grid.connect_neighbors(*stack.last().unwrap(), target);
+         stack.push(target);
+         visited[target] = true;
+      }
    }
 }
