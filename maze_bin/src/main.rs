@@ -1,8 +1,8 @@
 #![feature(duration_float)]
 
 use maze_lib::grid::Grid;
-use maze_lib::pathfinding::{self, PathData};
 use maze_lib::mazegen;
+use maze_lib::pathfinding::{self, PathData};
 use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
 use std::fs::File;

@@ -10,7 +10,7 @@ pub enum Algo {
    AldousBroder,
    Wilson,
    HuntAndKill,
-   RecursiveBacktracker
+   RecursiveBacktracker,
 }
 
 impl fmt::Display for Algo {
