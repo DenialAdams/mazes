@@ -1,6 +1,50 @@
 use crate::grid::Grid;
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::Rng;
+use std::fmt;
+
+#[derive(Copy, Clone)]
+pub enum Algo {
+   BinaryTree,
+   Sidewinder,
+   AldousBroder,
+   Wilson,
+   HuntAndKill,
+}
+
+impl fmt::Display for Algo {
+   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+      write!(
+         fmt,
+         "{}",
+         match self {
+            Algo::BinaryTree => "Binary Tree",
+            Algo::Sidewinder => "Sidewinder",
+            Algo::AldousBroder => "Aldous-Broder",
+            Algo::Wilson => "Wilsons's",
+            Algo::HuntAndKill => "Hunt and Kill",
+         }
+      )
+   }
+}
+
+pub const ALGOS: [Algo; 5] = [
+   Algo::BinaryTree,
+   Algo::Sidewinder,
+   Algo::AldousBroder,
+   Algo::Wilson,
+   Algo::HuntAndKill,
+];
+
+pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
+   match algo {
+      Algo::BinaryTree => binary_tree(grid, rng),
+      Algo::Sidewinder => sidewinder(grid, rng),
+      Algo::AldousBroder => aldous_broder(grid, rng),
+      Algo::Wilson => wilson(grid, rng),
+      Algo::HuntAndKill => hunt_and_kill(grid, rng),
+   }
+}
 
 pub fn binary_tree<R: Rng>(grid: &mut Grid, rng: &mut R) {
    for i in 0..grid.size() {

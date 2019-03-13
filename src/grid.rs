@@ -10,6 +10,12 @@ pub struct Cell {
    pub west_connected: bool,
 }
 
+impl Cell {
+   fn num_connections(&self) -> u8 {
+      self.north_connected as u8 + self.south_connected as u8 + self.east_connected as u8 + self.west_connected as u8
+   }
+}
+
 pub struct Grid {
    pub inner: Box<[Cell]>,
    pub width: usize,
@@ -103,6 +109,10 @@ impl Grid {
       }
    }
 
+   pub fn dead_ends<'a>(&'a self) -> impl Iterator<Item = &'a Cell> {
+      self.inner.iter().filter(|x| x.num_connections() == 1)
+   }
+
    pub fn get<I: GridIndex>(&mut self, index: I) -> Option<&Cell> {
       self.inner.get(index.as_1d(self.width))
    }
@@ -115,7 +125,7 @@ impl Grid {
    pub fn connect_neighbors<I: GridIndex>(&mut self, i1: I, i2: I) {
       let i1 = i1.as_1d(self.width);
       let i2 = i2.as_1d(self.width);
-   
+
       if self.has_neighbor_north(i1) && i2 == i1 - self.width {
          self.connect_cell_north(i1);
       } else if i2 == i1 + self.width {

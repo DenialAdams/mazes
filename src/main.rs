@@ -55,8 +55,46 @@ fn write_path_and_maze_to_svg(name: &'static str, path_data: &PathData, grid: &G
 }
 
 fn main() {
-   let mut grid = Grid::new(12, 12);
    let mut rng = XorShiftRng::from_entropy();
+   if std::env::args().any(|x| x == "--dead-ends") {
+      const DEADEND_WIDTH: usize = 20;
+      const DEADEND_HEIGHT: usize = 20;
+      const DEADEND_SIZE: usize = DEADEND_WIDTH * DEADEND_HEIGHT;
+      const DEADEND_SAMPLES: usize = 100;
+      let avg_fmt_width = format!("{}", DEADEND_SIZE).len();
+      let mut averages = Vec::with_capacity(mazegen::ALGOS.len());
+      for algo in mazegen::ALGOS.iter() {
+         println!("Running {}...", algo);
+         let mut deadend_counts: Vec<usize> = Vec::with_capacity(DEADEND_SAMPLES);
+         for _ in 0..DEADEND_SAMPLES {
+            let mut grid = Grid::new(DEADEND_WIDTH, DEADEND_HEIGHT);
+            mazegen::carve_maze(&mut grid, &mut rng, *algo);
+            deadend_counts.push(grid.dead_ends().count());
+         }
+         let total_deadends = deadend_counts.iter().fold(0, |acc, x| acc + x);
+         let avg_deadends = total_deadends as f64 / DEADEND_SAMPLES as f64;
+         averages.push((*algo, avg_deadends));
+      }
+      println!();
+      println!(
+         "Average dead-ends per {}x{} maze ({} total cells):",
+         DEADEND_WIDTH, DEADEND_HEIGHT, DEADEND_SIZE
+      );
+      println!();
+      averages.sort_unstable_by(|x, y| y.1.partial_cmp(&x.1).unwrap());
+      for (algo, avg) in averages {
+         let pct = avg * 100.0 / (DEADEND_SIZE as f64);
+         println!(
+            "{:>15} : {:>width$} ({}%)",
+            format!("{}", algo),
+            avg.round(),
+            pct.round(),
+            width = avg_fmt_width
+         );
+      }
+      return;
+   }
+   let mut grid = Grid::new(12, 12);
    // mazegen
    {
       let start_time = Instant::now();
@@ -66,6 +104,7 @@ fn main() {
       //mazegen::wilson(&mut grid, &mut rng);
       mazegen::hunt_and_kill(&mut grid, &mut rng);
       println!("mazegen elapsed: {}", start_time.elapsed().as_float_secs());
+      println!("{} dead-ends", grid.dead_ends().count());
    }
    // uniform cost search
    let ucs_path = {
