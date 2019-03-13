@@ -111,6 +111,22 @@ impl Grid {
       self.inner.get_mut(index.as_1d(self.width))
    }
 
+   /// If the cells are not neighbors, an incorrect connection will be made
+   pub fn connect_neighbors<I: GridIndex>(&mut self, i1: I, i2: I) {
+      let i1 = i1.as_1d(self.width);
+      let i2 = i2.as_1d(self.width);
+   
+      if self.has_neighbor_north(i1) && i2 == i1 - self.width {
+         self.connect_cell_north(i1);
+      } else if i2 == i1 + self.width {
+         self.connect_cell_south(i1);
+      } else if i2 == i1 + 1 {
+         self.connect_cell_east(i1)
+      } else {
+         self.connect_cell_west(i1);
+      }
+   }
+
    pub fn has_neighbor_north<I: GridIndex>(&self, index: I) -> bool {
       index.as_1d(self.width) >= self.width
    }

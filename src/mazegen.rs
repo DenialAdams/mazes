@@ -3,7 +3,7 @@ use rand::seq::{IteratorRandom, SliceRandom};
 use rand::Rng;
 
 pub fn binary_tree<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   for i in 0..grid.inner.len() {
+   for i in 0..grid.size() {
       if grid.has_neighbor_north(i) && grid.has_neighbor_east(i) {
          if rng.gen_bool(0.5) {
             grid.connect_cell_north(i);
@@ -20,7 +20,7 @@ pub fn binary_tree<R: Rng>(grid: &mut Grid, rng: &mut R) {
 
 pub fn sidewinder<R: Rng>(grid: &mut Grid, rng: &mut R) {
    let mut cur_run = vec![];
-   for i in 0..grid.inner.len() {
+   for i in 0..grid.size() {
       if grid.has_neighbor_north(i) && grid.has_neighbor_east(i) {
          cur_run.push(i);
          if rng.gen_bool(0.5) {
@@ -49,15 +49,7 @@ pub fn aldous_broder<R: Rng>(grid: &mut Grid, rng: &mut R) {
       grid.neighbors(cur_index, &mut neighbors);
       let target = *neighbors.choose(rng).unwrap();
       if !visited[target] {
-         if grid.has_neighbor_north(cur_index) && target == cur_index - grid.width {
-            grid.connect_cell_north(cur_index);
-         } else if target == cur_index + grid.width {
-            grid.connect_cell_south(cur_index);
-         } else if target == cur_index + 1 {
-            grid.connect_cell_east(cur_index)
-         } else {
-            grid.connect_cell_west(cur_index);
-         }
+         grid.connect_neighbors(cur_index, target);
       }
       cur_index = target;
       visited[cur_index] = true;
@@ -74,15 +66,7 @@ pub fn wilson<R: Rng>(grid: &mut Grid, rng: &mut R) {
          for window in walker_path.windows(2) {
             visited[window[0]] = true;
             visited[window[1]] = true;
-            if grid.has_neighbor_north(window[0]) && window[1] == window[0] - grid.width {
-               grid.connect_cell_north(window[0]);
-            } else if window[1] == window[0] + grid.width {
-               grid.connect_cell_south(window[0]);
-            } else if window[1] == window[0] + 1 {
-               grid.connect_cell_east(window[0])
-            } else {
-               grid.connect_cell_west(window[0]);
-            }
+            grid.connect_neighbors(window[0], window[1]);
          }
          walker_path.clear();
          walker_path.push((0..grid.size()).choose(rng).unwrap());
@@ -104,24 +88,35 @@ pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
    let mut visited = vec![false; grid.size()];
    visited[0] = true;
    let mut cur_index = 0;
-   loop {
+   'outer: loop {
       neighbors.clear();
       grid.neighbors(cur_index, &mut neighbors);
       neighbors.retain(|i| !visited[*i]);
       if neighbors.is_empty() {
          // HUNT
-         // TODO
+         for i in 0..grid.size() {
+            if visited[i] {
+               continue;
+            }
+            neighbors.clear();
+            grid.neighbors(i, &mut neighbors);
+            neighbors.retain(|i| visited[*i]);
+            if neighbors.len() == 0 {
+               continue;
+            }
+
+            let target = *neighbors.choose(rng).unwrap();
+            grid.connect_neighbors(cur_index, target);
+            cur_index = i;
+            visited[i] = true;
+            continue 'outer;
+         }
+         // didn't find any cells in hunt
+         // (no unvisited cells)
+         break;
       }
       let target = *neighbors.choose(rng).unwrap();
-      if grid.has_neighbor_north(cur_index) && target == cur_index - grid.width {
-         grid.connect_cell_north(cur_index);
-      } else if target == cur_index + grid.width {
-         grid.connect_cell_south(cur_index);
-      } else if target == cur_index + 1 {
-         grid.connect_cell_east(cur_index)
-      } else {
-         grid.connect_cell_west(cur_index);
-      }
+      grid.connect_neighbors(cur_index, target);
       cur_index = target;
       visited[cur_index] = true;
    }
