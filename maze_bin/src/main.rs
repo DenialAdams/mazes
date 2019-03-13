@@ -1,39 +1,13 @@
 #![feature(duration_float)]
 
-mod grid;
-mod mazegen;
-mod pathfinding;
-
-use grid::Grid;
-use pathfinding::PathData;
+use maze_lib::grid::Grid;
+use maze_lib::pathfinding::{self, PathData};
+use maze_lib::mazegen;
 use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::time::Instant;
-
-/*
-
-struct GuiState;
-
-impl Layout for GuiState {
-   fn layout(&self, info: LayoutInfo<Self>) -> Dom<Self> {
-      if let Some((svg_cache, svg_layers)) = self.svg {
-         Svg::with_layers(svg_layers).dom(&info.window, &svg_cache)
-      } else {
-         Button::with_label("Load SVG file").dom().with_callback(On::MouseUp, load_svg)
-      }
-   }
-}
-
-fn load_svg(app_state: &mut AppState<GuiState>, _: &mut CallbackInfo<GuiState>) -> UpdateScreen {
-    let mut svg_cache = SvgCache::empty();
-    let svg_layers = svg_cache.add_svg("maze.svg").unwrap();
-    app_state.data.modify(|data| data.svg = Some((svg_cache, svg_layers)));
-    Redraw
-}
-
-*/
 
 fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
    let mut destination = BufWriter::new(File::create(format!("{}.svg", name)).unwrap());
