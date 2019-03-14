@@ -54,9 +54,11 @@ window.genSetMaze = async function genSetMaze() {
    if (ele.length > 0) {
       ele[0].parentNode.removeChild(ele[0]);
    }
+   let width = document.getElementById("maze_width").valueAsNumber;
+   let height = document.getElementById("maze_height").valueAsNumber;
    let mazegen_algo_ele = document.getElementById("mazegen-algo");
    let mazegen_algo = mazegen_algo_ele.options[mazegen_algo_ele.selectedIndex].value;
-   document.getElementsByTagName("main")[0].insertAdjacentHTML("afterbegin", generate_maze_and_give_me_svg(12, 12, mazegen_algo));
+   document.getElementsByTagName("main")[0].insertAdjacentHTML("afterbegin", generate_maze_and_give_me_svg(width, height, mazegen_algo));
    let grid_cells = document.getElementsByClassName("cell");
    Array.from(grid_cells).forEach(function(element) {
       element.addEventListener('click', onCellClick);
