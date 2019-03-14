@@ -3,12 +3,20 @@
   <head>
     <meta charset="utf-8">
     <title>Mazes</title>
+    <link rel="stylesheet" href="stylesheet.css">
+    <script type="module" src="index.js"></script>
   </head>
   <body>
-     <div id="maze">
-     </div>
-    <script src="./pkg/maze_wasm.js"></script>
-    <script src="./index.js"></script>
-    <button onclick="genSetMaze()">Generate maze</button>
-  </body>
+      <main>
+         <select id="mazegen-algo">
+            <option value="BinaryTree">Binary Tree</option>
+            <option value="Sidewinder">Sidewinder</option>
+            <option value="AldousBroder">Aldous-Broder</option>
+            <option value="Wilson">Wilson's</option>
+            <option value="HuntAndKill">Hunt and Kill</option>
+            <option value="RecursiveBacktracker">Recursive Backtracker</option>
+         </select>
+         <button onclick="genSetMaze()">Generate maze</button>
+      </main>
+   </body>
 </html>
