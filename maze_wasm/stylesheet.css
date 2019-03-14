@@ -2,7 +2,7 @@ body {
    display: flex;
    justify-content: center;
    align-items: center;
-   height: 90vh;
+   height: 85vh;
 }
 
 main {
@@ -15,10 +15,14 @@ main {
 }
 
 select {
+   margin-top: 5px;
+   margin-bottom: 5px;
    flex: 0 0 auto;
 }
 
 button {
+   margin-top: 5px;
+   margin-bottom: 5px;
    flex: 0 0 auto;
 }
 
@@ -26,4 +30,21 @@ svg {
    max-width: 100%;
    max-height: 100%;
    flex: 1 0 auto;
+}
+
+.cell {
+   pointer-events: fill;
+   fill: none;
+   stroke: none;
+   stroke-width: 0.5px;
+}
+
+.cell:hover {
+   fill: #FF6666;
+   stroke: #FF6666;
+}
+
+.selected {
+   fill: #FF6666;
+   stroke: #FF6666;
 }

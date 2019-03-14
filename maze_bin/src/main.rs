@@ -34,6 +34,7 @@ fn main() {
       const DEADEND_WIDTH: usize = 20;
       const DEADEND_HEIGHT: usize = 20;
       const DEADEND_SIZE: usize = DEADEND_WIDTH * DEADEND_HEIGHT;
+      let mut grid = Grid::new(DEADEND_WIDTH, DEADEND_HEIGHT);
       const DEADEND_SAMPLES: usize = 100;
       let avg_fmt_width = format!("{}", DEADEND_SIZE).len();
       let mut averages = Vec::with_capacity(mazegen::ALGOS.len());
@@ -41,7 +42,7 @@ fn main() {
          println!("Running {}...", algo);
          let mut deadend_counts: Vec<usize> = Vec::with_capacity(DEADEND_SAMPLES);
          for _ in 0..DEADEND_SAMPLES {
-            let mut grid = Grid::new(DEADEND_WIDTH, DEADEND_HEIGHT);
+            grid.reset();
             mazegen::carve_maze(&mut grid, &mut rng, *algo);
             deadend_counts.push(grid.dead_ends().count());
          }
@@ -84,21 +85,21 @@ fn main() {
    // uniform cost search
    let ucs_path = {
       let start_time = Instant::now();
-      let path = pathfinding::a_star(&grid, pathfinding::null_h).unwrap();
+      let path = pathfinding::a_star(&grid, pathfinding::null_h, 0, grid.size() - 1).unwrap();
       println!("uniform cost search elapsed: {}", start_time.elapsed().as_float_secs());
       path
    };
    // a star
    let astar_path = {
       let start_time = Instant::now();
-      let path = pathfinding::a_star(&grid, pathfinding::manhattan_h).unwrap();
+      let path = pathfinding::a_star(&grid, pathfinding::manhattan_h, 0, grid.size() - 1).unwrap();
       println!("astar elapsed: {}", start_time.elapsed().as_float_secs());
       path
    };
    // greedy best first
    let gbf_path = {
       let start_time = Instant::now();
-      let path = pathfinding::greedy_best_first(&grid, pathfinding::manhattan_h).unwrap();
+      let path = pathfinding::greedy_best_first(&grid, pathfinding::manhattan_h, 0, grid.size() - 1).unwrap();
       println!("greedy best first elapsed: {}", start_time.elapsed().as_float_secs());
       path
    };

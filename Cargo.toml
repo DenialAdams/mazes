@@ -5,3 +5,6 @@ members = [
    "maze_wasm",
    "maze_lib",
 ]
+
+[profile.release]
+lto = true

@@ -109,6 +109,12 @@ impl Grid {
       }
    }
 
+   pub fn reset(&mut self) {
+      for x in self.inner.iter_mut() {
+         *x = Cell::default();
+      }
+   }
+
    pub fn dead_ends<'a>(&'a self) -> impl Iterator<Item = &'a Cell> {
       self.inner.iter().filter(|x| x.num_connections() == 1)
    }
@@ -205,7 +211,7 @@ impl Grid {
 
          let upper_left_y = row * 3;
          let upper_left_x = col * 3;
-         writeln!(dest, "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ededed;fill:#ffffff\" />", upper_left_x, upper_left_y, 3, 3)?;
+         writeln!(dest, "<rect class=\"cell\" id=\"{}\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" />", i, upper_left_x, upper_left_y, 3, 3)?;
       }
       Ok(())
    }

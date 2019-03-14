@@ -8,6 +8,12 @@
   </head>
   <body>
       <main>
+         <select onchange="maybePathfind()" id="pathfinding-algo">
+            <option value="None">None</option>
+            <option value="UniformCostSearch">Uniform Cost Search</option>
+            <option value="AStar">A*</option>
+            <option value="GreedyBestFirst">Greedy Best First</option>
+         </select>
          <select id="mazegen-algo">
             <option value="BinaryTree">Binary Tree</option>
             <option value="Sidewinder">Sidewinder</option>

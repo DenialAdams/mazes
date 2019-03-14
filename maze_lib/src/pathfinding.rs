@@ -164,7 +164,7 @@ fn expand_node(
    }
 }
 
-pub fn a_star<F>(grid: &Grid, h: F) -> Option<PathData>
+pub fn a_star<F>(grid: &Grid, h: F, start: usize, goal: usize) -> Option<PathData>
 where
    F: Fn(usize, usize, usize) -> usize,
 {
@@ -172,8 +172,6 @@ where
    let mut nodes_expanded = 0;
    let mut diag_map = vec![DiagStatus(DIAG_UNEXPLORED); grid.size()].into_boxed_slice();
    let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
-   let start = 0;
-   let goal = grid.size() - 1;
    open.push(Reverse(Node {
       priority: 0 + h(start, goal, grid.width),
       i: start,
@@ -212,7 +210,7 @@ where
    None
 }
 
-pub fn greedy_best_first<F>(grid: &Grid, h: F) -> Option<PathData>
+pub fn greedy_best_first<F>(grid: &Grid, h: F, start: usize, goal: usize) -> Option<PathData>
 where
    F: Fn(usize, usize, usize) -> usize,
 {
@@ -220,8 +218,6 @@ where
    let mut nodes_expanded = 0;
    let mut diag_map = vec![DiagStatus(DIAG_UNEXPLORED); grid.size()].into_boxed_slice();
    let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
-   let start = 0;
-   let goal = grid.size() - 1;
    open.push(Reverse(Node {
       priority: 0 + h(start, goal, grid.width),
       i: start,
