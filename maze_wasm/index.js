@@ -4,15 +4,7 @@ var initWasm = false;
 var startNode = null;
 var endNode = null;
 
-window.maybePathfind = function maybePathfind() {
-   if (startNode == null || endNode == null || initWasm == false) {
-      return;
-   }
-   let pf_algo_ele = document.getElementById("pathfinding-algo");
-   let pf_algo = pf_algo_ele.options[pf_algo_ele.selectedIndex].value;
-   if (pf_algo == "None") {
-      return;
-   }
+function cleanupPathData() {
    let before_pf_path = document.getElementById("g_path");
    let before_pf_diag = document.getElementById("g_diag");
    if (before_pf_path != null) {
@@ -21,8 +13,30 @@ window.maybePathfind = function maybePathfind() {
    if (before_pf_diag != null) {
       before_pf_diag.parentNode.removeChild(before_pf_diag);
    }
+}
+
+function maybePathfind() {
+   if (startNode == null || endNode == null || initWasm == false) {
+      return;
+   }
+   let pf_algo_ele = document.getElementById("pathfinding-algo");
+   let pf_algo = pf_algo_ele.options[pf_algo_ele.selectedIndex].value;
+   if (pf_algo == "None") {
+      return;
+   }
+   cleanupPathData();
    let pf_svg = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
    document.getElementById("g_skele").insertAdjacentHTML("beforebegin", pf_svg);
+}
+
+window.pathfindChange = function pathfindChange(event) {
+   let pf_algo_ele = document.getElementById("pathfinding-algo");
+   let pf_algo = pf_algo_ele.options[pf_algo_ele.selectedIndex].value;
+   if (pf_algo == "None") {
+      cleanupPathData();
+   } else {
+      maybePathfind();
+   }
 }
 
 window.onCellClick = function onCellClick(event) {
