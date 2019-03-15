@@ -69,7 +69,7 @@ fn main() {
       }
       return;
    }
-   let mut grid = Grid::new(12, 12);
+   let mut grid = Grid::new(100, 100);
    // mazegen
    {
       let start_time = Instant::now();
@@ -85,21 +85,21 @@ fn main() {
    // uniform cost search
    let ucs_path = {
       let start_time = Instant::now();
-      let path = pathfinding::a_star(&grid, pathfinding::null_h, 0, grid.size() - 1).unwrap();
+      let path = pathfinding::a_star(&grid, pathfinding::null_h, 0, grid.size() - 1, false).unwrap();
       println!("uniform cost search elapsed: {}", start_time.elapsed().as_float_secs());
       path
    };
    // a star
    let astar_path = {
       let start_time = Instant::now();
-      let path = pathfinding::a_star(&grid, pathfinding::manhattan_h, 0, grid.size() - 1).unwrap();
+      let path = pathfinding::a_star(&grid, pathfinding::manhattan_h, 0, grid.size() - 1, false).unwrap();
       println!("astar elapsed: {}", start_time.elapsed().as_float_secs());
       path
    };
    // greedy best first
    let gbf_path = {
       let start_time = Instant::now();
-      let path = pathfinding::greedy_best_first(&grid, pathfinding::manhattan_h, 0, grid.size() - 1).unwrap();
+      let path = pathfinding::a_star(&grid, pathfinding::manhattan_h, 0, grid.size() - 1, true).unwrap();
       println!("greedy best first elapsed: {}", start_time.elapsed().as_float_secs());
       path
    };

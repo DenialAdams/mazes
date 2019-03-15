@@ -11,12 +11,12 @@ pub struct MazeApp {
    grid: Grid,
 }
 
-static mut maze_app: Option<MazeApp> = None;
+static mut MAZE_APP: Option<MazeApp> = None;
 
 #[wasm_bindgen]
 pub fn app_init() {
    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-   unsafe { maze_app = Some(MazeApp {
+   unsafe { MAZE_APP = Some(MazeApp {
       rng: XorShiftRng::from_entropy(),
       grid: Grid::new(12, 12),
    })};
@@ -24,12 +24,12 @@ pub fn app_init() {
 
 #[wasm_bindgen]
 pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> String {
-   let app = unsafe { maze_app.as_ref().unwrap() };
+   let app = unsafe { MAZE_APP.as_ref().unwrap() };
    let mut result = Vec::new();
    let path_data = match pathfind_algo {
-      "UniformCostSearch" => pathfinding::a_star(&app.grid, pathfinding::null_h, start, goal),
-      "AStar" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal),
-      "GreedyBestFirst" => pathfinding::greedy_best_first(&app.grid, pathfinding::manhattan_h, start, goal),
+      "UniformCostSearch" => pathfinding::a_star(&app.grid, pathfinding::null_h, start, goal, false),
+      "AStar" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, false),
+      "GreedyBestFirst" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, true),
       _ => panic!("Got a bad pathfinding algo from JS")
    }.unwrap();
    writeln!(result, "<g id=\"g_diag\">").unwrap();
@@ -43,7 +43,7 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> String {
 
 #[wasm_bindgen]
 pub fn generate_maze_and_give_me_svg(width: usize, height: usize, mazegen_algo: &str) -> String {
-   let app = unsafe { maze_app.as_mut().unwrap() };
+   let app = unsafe { MAZE_APP.as_mut().unwrap() };
    let algo = match mazegen_algo {
       "BinaryTree" => mazegen::Algo::BinaryTree,
       "Sidewinder" => mazegen::Algo::Sidewinder,
