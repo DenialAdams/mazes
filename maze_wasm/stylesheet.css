@@ -36,7 +36,22 @@ svg {
    pointer-events: fill;
    fill: none;
    stroke: none;
-   stroke-width: 0.5px;
+   stroke-width: 0.1px;
+}
+
+.cell.generated {
+   fill: #FFFF00;
+   stroke: #FFFF00;
+}
+
+.cell.expanded {
+   fill: #FF8C00;
+   stroke: #FF8C00;
+}
+
+.cell.path {
+   fill: #FF0000;
+   stroke: #FF0000;
 }
 
 .cell:hover {
@@ -44,7 +59,7 @@ svg {
    stroke: #FF6666;
 }
 
-.selected {
+.cell.selected {
    fill: #FF6666;
    stroke: #FF6666;
 }

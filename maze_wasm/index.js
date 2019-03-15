@@ -5,13 +5,15 @@ var startNode = null;
 var endNode = null;
 
 function cleanupPathData() {
-   let before_pf_path = document.getElementById("g_path");
-   let before_pf_diag = document.getElementById("g_diag");
-   if (before_pf_path != null) {
-      before_pf_path.parentNode.removeChild(before_pf_path);
+   let cells = document.getElementsByClassName('cell');
+   for (var i = 0; i < cells.length; i++) {
+      cells[i].setAttribute('class', 'cell');
    }
-   if (before_pf_diag != null) {
-      before_pf_diag.parentNode.removeChild(before_pf_diag);
+   if (startNode != null) {
+      document.getElementById(startNode).setAttribute('class', 'cell selected');
+   }
+   if (endNode != null) {
+      document.getElementById(endNode).setAttribute('class', 'cell selected');
    }
 }
 
@@ -25,8 +27,20 @@ function maybePathfind() {
       return;
    }
    cleanupPathData();
-   let pf_svg = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
-   document.getElementById("g_skele").insertAdjacentHTML("beforebegin", pf_svg);
+   let pf_nodes = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
+   for (var i = 0; i < pf_nodes.length; i++) {
+      if (pf_nodes[i] == 0x00) {
+         document.getElementById(i).setAttribute('class', 'cell');
+      } else if (pf_nodes[i] == 0x01) {
+         document.getElementById(i).setAttribute('class', 'cell generated');
+      } else if (pf_nodes[i] == 0x03) {
+         document.getElementById(i).setAttribute('class', 'cell expanded');
+      } else {
+         document.getElementById(i).setAttribute('class', 'cell path');
+      }
+  }
+  document.getElementById(startNode).setAttribute('class', 'cell selected');
+  document.getElementById(endNode).setAttribute('class', 'cell selected');
 }
 
 window.pathfindChange = function pathfindChange(event) {

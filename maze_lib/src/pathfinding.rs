@@ -51,7 +51,7 @@ pub const DIAG_GENERATED: u8 = 0x01;
 pub const DIAG_EXPANDED: u8 = 0x03;
 
 #[derive(Copy, Clone)]
-pub struct DiagStatus(u8);
+pub struct DiagStatus(pub u8);
 
 pub struct PathData {
    pub path: Box<[usize]>,

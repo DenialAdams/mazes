@@ -2,7 +2,7 @@ use maze_lib::grid::Grid;
 use maze_lib::{pathfinding, mazegen};
 use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
-use std::io::Write;
+use std::io::{self, Write};
 
 use wasm_bindgen::prelude::*;
 
@@ -22,23 +22,22 @@ pub fn app_init() {
    })};
 }
 
+const DIAG_PATH: u8 = 0x07;
+
 #[wasm_bindgen]
-pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> String {
+pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
    let app = unsafe { MAZE_APP.as_ref().unwrap() };
-   let mut result = Vec::new();
    let path_data = match pathfind_algo {
       "UniformCostSearch" => pathfinding::a_star(&app.grid, pathfinding::null_h, start, goal, false),
       "AStar" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, false),
       "GreedyBestFirst" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, true),
       _ => panic!("Got a bad pathfinding algo from JS")
    }.unwrap();
-   writeln!(result, "<g id=\"g_diag\">").unwrap();
-   pathfinding::write_diag_to_svg(&path_data.diag, app.grid.width, &mut result).unwrap();
-   writeln!(result, "</g>").unwrap();
-   writeln!(result, "<g id=\"g_path\">").unwrap();
-   pathfinding::write_path_to_svg(&path_data.path, app.grid.width, &mut result).unwrap();
-   writeln!(result, "</g>").unwrap();
-   unsafe { String::from_utf8_unchecked(result) }
+   let mut diag = unsafe { std::mem::transmute::<_, Box<[u8]>>(path_data.diag) };
+   for i in path_data.path.into_iter() {
+      diag[*i] = DIAG_PATH;
+   }
+   diag
 }
 
 #[wasm_bindgen]
