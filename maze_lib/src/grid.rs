@@ -11,7 +11,7 @@ pub struct Cell {
 }
 
 impl Cell {
-   fn num_connections(&self) -> u8 {
+   fn num_connections(self) -> u8 {
       self.north_connected as u8 + self.south_connected as u8 + self.east_connected as u8 + self.west_connected as u8
    }
 }
@@ -115,7 +115,7 @@ impl Grid {
       }
    }
 
-   pub fn dead_ends<'a>(&'a self) -> impl Iterator<Item = &'a Cell> {
+   pub fn dead_ends(&self) -> impl Iterator<Item = &Cell> {
       self.inner.iter().filter(|x| x.num_connections() == 1)
    }
 
@@ -211,7 +211,7 @@ impl Grid {
 
          let upper_left_y = row * 3;
          let upper_left_x = col * 3;
-         writeln!(dest, "<rect class=\"cell\" id=\"{}\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" />", i, upper_left_x, upper_left_y, 3, 3)?;
+         writeln!(dest, "<rect class=\"cell\" id=\"{}\" x=\"{}\" y=\"{}\" width=\"3\" height=\"3\" />", i, upper_left_x, upper_left_y)?;
       }
       Ok(())
    }

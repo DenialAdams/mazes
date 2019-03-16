@@ -2,7 +2,7 @@ use maze_lib::grid::Grid;
 use maze_lib::{pathfinding, mazegen};
 use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
-use std::io::{self, Write};
+use std::io::Write;
 
 use wasm_bindgen::prelude::*;
 
@@ -34,7 +34,7 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
       _ => panic!("Got a bad pathfinding algo from JS")
    }.unwrap();
    let mut diag = unsafe { std::mem::transmute::<_, Box<[u8]>>(path_data.diag) };
-   for i in path_data.path.into_iter() {
+   for i in path_data.path.iter() {
       diag[*i] = DIAG_PATH;
    }
    diag

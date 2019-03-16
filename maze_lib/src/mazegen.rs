@@ -152,7 +152,7 @@ pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
             neighbors.clear();
             grid.neighbors(i, &mut neighbors);
             neighbors.retain(|i| visited[*i]);
-            if neighbors.len() == 0 {
+            if neighbors.is_empty() {
                continue;
             }
 

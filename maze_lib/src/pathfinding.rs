@@ -73,15 +73,15 @@ pub fn write_diag_to_svg<W: Write>(diag: &[DiagStatus], width: usize, dest: &mut
          DIAG_GENERATED => {
             writeln!(
                dest,
-               "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ffff00;fill:#ffff00\" />",
-               upper_left_x, upper_left_y, 3, 3
+               "<rect x=\"{}\" y=\"{}\" width=\"3\" height=\"3\" style=\"stroke-width:0.1px;stroke:#ffff00;fill:#ffff00\" />",
+               upper_left_x, upper_left_y
             )?
          }
          DIAG_EXPANDED => {
             writeln!(
                dest,
-               "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ff8c00;fill:#ff8c00\" />",
-               upper_left_x, upper_left_y, 3, 3
+               "<rect x=\"{}\" y=\"{}\" width=\"3\" height=\"3\" style=\"stroke-width:0.1px;stroke:#ff8c00;fill:#ff8c00\" />",
+               upper_left_x, upper_left_y
             )?
          }
          _ => unreachable!(),
@@ -99,8 +99,8 @@ pub fn write_path_to_svg<W: Write>(path: &[usize], width: usize, dest: &mut W) -
       let upper_left_x = col * 3;
       writeln!(
          dest,
-         "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" style=\"stroke-width:0.1px;stroke:#ff0000;fill:#ff0000\" />",
-         upper_left_x, upper_left_y, 3, 3
+         "<rect x=\"{}\" y=\"{}\" width=\"3\" height=\"3\" style=\"stroke-width:0.1px;stroke:#ff0000;fill:#ff0000\" />",
+         upper_left_x, upper_left_y
       )?
    }
    Ok(())
@@ -173,7 +173,7 @@ where
    let mut diag_map = vec![DiagStatus(DIAG_UNEXPLORED); grid.size()].into_boxed_slice();
    let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
    open.push(Reverse(Node {
-      priority: 0 + h(start, goal, grid.width),
+      priority: h(start, goal, grid.width),
       i: start,
       path: vec![].into_boxed_slice(),
    }));

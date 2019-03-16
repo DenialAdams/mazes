@@ -46,7 +46,7 @@ fn main() {
             mazegen::carve_maze(&mut grid, &mut rng, *algo);
             deadend_counts.push(grid.dead_ends().count());
          }
-         let total_deadends = deadend_counts.iter().fold(0, |acc, x| acc + x);
+         let total_deadends: usize = deadend_counts.iter().sum();
          let avg_deadends = total_deadends as f64 / DEADEND_SAMPLES as f64;
          averages.push((*algo, avg_deadends));
       }
@@ -69,7 +69,7 @@ fn main() {
       }
       return;
    }
-   let mut grid = Grid::new(100, 100);
+   let mut grid = Grid::new(10000, 10000);
    // mazegen
    {
       let start_time = Instant::now();
