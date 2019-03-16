@@ -6,6 +6,9 @@ use std::io::Write;
 
 use wasm_bindgen::prelude::*;
 
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 pub struct MazeApp {
    rng: XorShiftRng,
    grid: Grid,
