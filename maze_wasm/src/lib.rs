@@ -1,5 +1,5 @@
 use maze_lib::grid::Grid;
-use maze_lib::{pathfinding, mazegen};
+use maze_lib::{mazegen, pathfinding};
 use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
 use std::io::Write;
@@ -16,10 +16,12 @@ static mut MAZE_APP: Option<MazeApp> = None;
 #[wasm_bindgen]
 pub fn app_init() {
    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-   unsafe { MAZE_APP = Some(MazeApp {
-      rng: XorShiftRng::from_entropy(),
-      grid: Grid::new(12, 12),
-   })};
+   unsafe {
+      MAZE_APP = Some(MazeApp {
+         rng: XorShiftRng::from_entropy(),
+         grid: Grid::new(12, 12),
+      })
+   };
 }
 
 const DIAG_PATH: u8 = 0x07;
@@ -31,8 +33,9 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
       "UniformCostSearch" => pathfinding::a_star(&app.grid, pathfinding::null_h, start, goal, false),
       "AStar" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, false),
       "GreedyBestFirst" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, true),
-      _ => panic!("Got a bad pathfinding algo from JS")
-   }.unwrap();
+      _ => panic!("Got a bad pathfinding algo from JS"),
+   }
+   .unwrap();
    let mut diag = unsafe { std::mem::transmute::<_, Box<[u8]>>(path_data.diag) };
    for i in path_data.path.iter() {
       diag[*i] = DIAG_PATH;

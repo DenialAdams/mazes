@@ -211,7 +211,11 @@ impl Grid {
 
          let upper_left_y = row * 3;
          let upper_left_x = col * 3;
-         writeln!(dest, "<rect class=\"cell\" id=\"{}\" x=\"{}\" y=\"{}\" width=\"3\" height=\"3\" />", i, upper_left_x, upper_left_y)?;
+         writeln!(
+            dest,
+            "<rect class=\"cell\" id=\"{}\" x=\"{}\" y=\"{}\" width=\"3\" height=\"3\" />",
+            i, upper_left_x, upper_left_y
+         )?;
       }
       Ok(())
    }
