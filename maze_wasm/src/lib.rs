@@ -47,7 +47,7 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
 }
 
 #[wasm_bindgen]
-pub fn djikstra(start: usize) -> Box<[u64]> {
+pub fn djikstra(start: usize) -> Box<[u32]> {
    let app = unsafe { MAZE_APP.as_ref().unwrap() };
    let mut best_paths = pathfinding::djikstra(&app.grid, start);
    let longest_path = *best_paths.iter().max().unwrap();
@@ -59,7 +59,12 @@ pub fn djikstra(start: usize) -> Box<[u64]> {
       let bright = 128 + (127.0 * intensity) as u64;
       *path_len = dark << 16 | bright << 8 | dark;
    }
-   best_paths
+   // TEMP HACK 64 bit stuff not supported in firefox yet, chop everything down to u32
+   let mut size_down = vec![0u32; best_paths.len()].into_boxed_slice();
+   for (rgb64, rgb32) in best_paths.into_iter().zip(size_down.iter_mut()) {
+      *rgb32 = *rgb64 as u32;
+   }
+   size_down
 }
 
 #[wasm_bindgen]

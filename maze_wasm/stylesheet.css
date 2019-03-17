@@ -55,8 +55,8 @@ svg {
 }
 
 .cell:hover {
-   fill: #FF6666;
-   stroke: #FF6666;
+   fill: #FF6666 !important;
+   stroke: #FF6666 !important;
 }
 
 .cell.selected {

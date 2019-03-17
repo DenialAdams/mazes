@@ -8,6 +8,8 @@ function cleanupPathData() {
    let cells = document.getElementsByClassName('cell');
    for (var i = 0; i < cells.length; i++) {
       cells[i].setAttribute('class', 'cell');
+      cells[i].style.setProperty('fill', '');
+      cells[i].style.setProperty('stroke', '');
    }
    if (startNode != null) {
       document.getElementById(startNode).setAttribute('class', 'cell selected');
@@ -31,8 +33,12 @@ function maybePathfind() {
       // special, do djikstra gradient visualization
       let cell_colors = djikstra(startNode);
       for (var i = 0; i < cell_colors.length; i++) {
-         document.getElementById(i).getAttribute('style').setProperty('fill', '#' + cell_colors[i].toString(16).padStart(6, '0'), "important");
+         let ele = document.getElementById(i);
+         ele.style.setProperty('fill', '#' + cell_colors[i].toString(16).padStart(6, '0'));
+         ele.style.setProperty('stroke', '#' + cell_colors[i].toString(16).padStart(6, '0'));
       }
+      document.getElementById(startNode).style.setProperty('fill', '');
+      document.getElementById(startNode).style.setProperty('stroke', '');
       return;  
    }
    let pf_nodes = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
