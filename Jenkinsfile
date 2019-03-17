@@ -26,8 +26,8 @@ pipeline {
       steps {
          dir('publish') {
             dir('pkg') {
-               sh 'cp ../maze_wasm/pkg/maze_wasm.js .'
-               sh 'cp ../maze_wasm/pkg/maze_wasm_bg.wasm .'
+               sh 'cp ../../maze_wasm/pkg/maze_wasm.js .'
+               sh 'cp ../../maze_wasm/pkg/maze_wasm_bg.wasm .'
             }
             sh 'cp ../maze_wasm/index.html .'
             sh 'cp ../maze_wasm/index.js .'
