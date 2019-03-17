@@ -272,10 +272,4 @@ mod test {
       assert_eq!(g.has_neighbor_east(7), true);
       assert_eq!(g.has_neighbor_west(7), true);
    }
-
-   #[test]
-   fn new_grid_all_dead_ends() {
-      let g = Grid::new(5, 5);
-      assert_eq!(g.dead_ends().count(), 25);
-   }
 }
