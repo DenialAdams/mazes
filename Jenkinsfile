@@ -33,7 +33,7 @@ pipeline {
             sh 'cp ../maze_wasm/index.js .'
             sh 'cp ../maze_wasm/stylesheet.css .'
             sshagent (credentials: ['jenkins-ssh-nfs']) {
-               sh 'rsync -avr -e "ssh -l flandoo_brickcodes -o StrictHostKeyChecking=no" --exclude ".git" . ssh.phx.nearlyfreespeech.net:/home/public/mazes'
+               sh 'rsync -avr -e "ssh -l flandoo_brickcodes -o StrictHostKeyChecking=no" --exclude ".git" --exclude "pkg@tmp" . ssh.phx.nearlyfreespeech.net:/home/public/mazes'
             }
          }
       }
