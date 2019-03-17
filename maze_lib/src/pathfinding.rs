@@ -23,6 +23,24 @@ impl Ord for Node {
    }
 }
 
+#[derive(PartialEq, Eq)]
+struct DjikstraNode {
+   i: usize,
+   path: Box<[usize]>,
+}
+
+impl PartialOrd for DjikstraNode {
+   fn partial_cmp(&self, other: &DjikstraNode) -> Option<Ordering> {
+      Some(self.cmp(other))
+   }
+}
+
+impl Ord for DjikstraNode {
+   fn cmp(&self, other: &DjikstraNode) -> Ordering {
+      self.path.len().cmp(&other.path.len())
+   }
+}
+
 pub fn null_h(_: usize, _: usize, _: usize) -> usize {
    0
 }
@@ -208,4 +226,62 @@ where
       closed.insert(cur_node.i, cur_node.path.len());
    }
    None
+}
+
+pub fn djikstra(grid: &Grid, start: usize) -> Box<[u64]> {
+   let mut best_paths = vec![std::u64::MAX; grid.size()].into_boxed_slice();
+   let mut open: BinaryHeap<Reverse<DjikstraNode>> = BinaryHeap::new();
+   open.push(Reverse(DjikstraNode {
+      i: start,
+      path: vec![].into_boxed_slice(),
+   }));
+   while let Some(Reverse(cur_node)) = open.pop() {
+      // if we've already reached this state in fewer actions (or the same number of actions),
+      // we can not possibly do better
+      if best_paths[cur_node.i] <= cur_node.path.len() as u64 {
+         continue;
+      }
+
+      // expand
+      {
+         // N
+         if grid.has_neighbor_north(cur_node.i) && grid[cur_node.i].north_connected {
+            let mut new_path = cur_node.path.to_vec();
+            new_path.push(cur_node.i);
+            open.push(Reverse(DjikstraNode {
+               i: cur_node.i - grid.width,
+               path: new_path.into_boxed_slice(),
+            }));
+         }
+         // S
+         if grid.has_neighbor_south(cur_node.i) && grid[cur_node.i].south_connected {
+            let mut new_path = cur_node.path.to_vec();
+            new_path.push(cur_node.i);
+            open.push(Reverse(DjikstraNode {
+               i: cur_node.i + grid.width,
+               path: new_path.into_boxed_slice(),
+            }));
+         }
+         // E
+         if grid.has_neighbor_east(cur_node.i) && grid[cur_node.i].east_connected {
+            let mut new_path = cur_node.path.to_vec();
+            new_path.push(cur_node.i);
+            open.push(Reverse(DjikstraNode {
+               i: cur_node.i + 1,
+               path: new_path.into_boxed_slice(),
+            }));
+         }
+         // W
+         if grid.has_neighbor_west(cur_node.i) && grid[cur_node.i].west_connected {
+            let mut new_path = cur_node.path.to_vec();
+            new_path.push(cur_node.i);
+            open.push(Reverse(DjikstraNode {
+               i: cur_node.i - 1,
+               path: new_path.into_boxed_slice(),
+            }));
+         }
+      }
+      best_paths[cur_node.i] = cur_node.path.len() as u64;
+   }
+   best_paths
 }

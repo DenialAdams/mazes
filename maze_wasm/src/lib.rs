@@ -47,6 +47,22 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
 }
 
 #[wasm_bindgen]
+pub fn djikstra(start: usize) -> Box<[u64]> {
+   let app = unsafe { MAZE_APP.as_ref().unwrap() };
+   let mut best_paths = pathfinding::djikstra(&app.grid, start);
+   let longest_path = *best_paths.iter().max().unwrap();
+   // a little weird; we're converting the values representing path length
+   // to values that are RBG values. saves allocating a new buffer.
+   for path_len in best_paths.iter_mut() {
+      let intensity = (longest_path - *path_len) as f64 / longest_path as f64;
+      let dark = (255.0 * intensity).round() as u64;
+      let bright = 128 + (127.0 * intensity) as u64;
+      *path_len = dark << 16 | bright << 8 | dark;
+   }
+   best_paths
+}
+
+#[wasm_bindgen]
 pub fn generate_maze_and_give_me_svg(width: usize, height: usize, mazegen_algo: &str) -> String {
    let app = unsafe { MAZE_APP.as_mut().unwrap() };
    let algo = match mazegen_algo {

@@ -1,4 +1,4 @@
-import { generate_maze_and_give_me_svg, app_init, default as init, pathfind } from './pkg/maze_wasm.js';
+import { generate_maze_and_give_me_svg, app_init, pathfind, djikstra, default as init } from './pkg/maze_wasm.js';
 
 var initWasm = false;
 var startNode = null;
@@ -27,6 +27,14 @@ function maybePathfind() {
       return;
    }
    cleanupPathData();
+   if (startNode == endNode) {
+      // special, do djikstra gradient visualization
+      let cell_colors = djikstra(startNode);
+      for (var i = 0; i < cell_colors.length; i++) {
+         document.getElementById(i).getAttribute('style').setProperty('fill', '#' + cell_colors[i].toString(16).padStart(6, '0'), "important");
+      }
+      return;  
+   }
    let pf_nodes = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
    for (var i = 0; i < pf_nodes.length; i++) {
       if (pf_nodes[i] == 0x00) {
