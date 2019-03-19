@@ -49,22 +49,16 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
 #[wasm_bindgen]
 pub fn djikstra(start: usize) -> Box<[u32]> {
    let app = unsafe { MAZE_APP.as_ref().unwrap() };
-   let mut best_paths = pathfinding::djikstra(&app.grid, start);
+   let best_paths = pathfinding::djikstra(&app.grid, start);
    let longest_path = *best_paths.iter().max().unwrap();
-   // a little weird; we're converting the values representing path length
-   // to values that are RBG values. saves allocating a new buffer.
-   for path_len in best_paths.iter_mut() {
+   let mut rgb_data = vec![0u32; best_paths.len()].into_boxed_slice();
+   for (rgb, path_len) in rgb_data.iter_mut().zip(best_paths.iter()) {
       let intensity = (longest_path - *path_len) as f64 / longest_path as f64;
-      let dark = (255.0 * intensity).round() as u64;
-      let bright = 128 + (127.0 * intensity) as u64;
-      *path_len = dark << 16 | bright << 8 | dark;
+      let dark = (255.0 * intensity).round() as u32;
+      let bright = 128 + (127.0 * intensity) as u32;
+      *rgb = dark << 16 | bright << 8 | dark;
    }
-   // TEMP HACK 64 bit stuff not supported in firefox yet, chop everything down to u32
-   let mut size_down = vec![0u32; best_paths.len()].into_boxed_slice();
-   for (rgb64, rgb32) in best_paths.into_iter().zip(size_down.iter_mut()) {
-      *rgb32 = *rgb64 as u32;
-   }
-   size_down
+   rgb_data
 }
 
 #[wasm_bindgen]

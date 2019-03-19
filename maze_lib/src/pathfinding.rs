@@ -228,8 +228,8 @@ where
    None
 }
 
-pub fn djikstra(grid: &Grid, start: usize) -> Box<[u64]> {
-   let mut best_paths = vec![std::u64::MAX; grid.size()].into_boxed_slice();
+pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
+   let mut best_paths = vec![std::usize::MAX; grid.size()].into_boxed_slice();
    let mut open: BinaryHeap<Reverse<DjikstraNode>> = BinaryHeap::new();
    open.push(Reverse(DjikstraNode {
       i: start,
@@ -238,7 +238,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[u64]> {
    while let Some(Reverse(cur_node)) = open.pop() {
       // if we've already reached this state in fewer actions (or the same number of actions),
       // we can not possibly do better
-      if best_paths[cur_node.i] <= cur_node.path.len() as u64 {
+      if best_paths[cur_node.i] <= cur_node.path.len() {
          continue;
       }
 
@@ -281,7 +281,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[u64]> {
             }));
          }
       }
-      best_paths[cur_node.i] = cur_node.path.len() as u64;
+      best_paths[cur_node.i] = cur_node.path.len();
    }
    best_paths
 }
