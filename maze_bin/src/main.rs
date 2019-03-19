@@ -69,7 +69,7 @@ fn main() {
       }
       return;
    }
-   let mut grid = Grid::new(10000, 10000);
+   let mut grid = Grid::new(100, 100);
    // mazegen
    {
       let start_time = Instant::now();
