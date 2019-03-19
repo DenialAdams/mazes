@@ -241,7 +241,8 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
          let new_path_len = cur_node.path.len() + 1;
          // N
          if grid.has_neighbor_north(cur_node.i) && grid[cur_node.i].north_connected && best_paths[cur_node.i - grid.width] > new_path_len {
-            let mut new_path = cur_node.path.to_vec();
+            let mut new_path = Vec::with_capacity(new_path_len);
+            new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
             open.push(Reverse(DjikstraNode {
                i: cur_node.i - grid.width,
@@ -250,7 +251,8 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
          }
          // S
          if grid.has_neighbor_south(cur_node.i) && grid[cur_node.i].south_connected && best_paths[cur_node.i + grid.width] > new_path_len {
-            let mut new_path = cur_node.path.to_vec();
+            let mut new_path = Vec::with_capacity(new_path_len);
+            new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
             open.push(Reverse(DjikstraNode {
                i: cur_node.i + grid.width,
@@ -259,7 +261,8 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
          }
          // E
          if grid.has_neighbor_east(cur_node.i) && grid[cur_node.i].east_connected && best_paths[cur_node.i + 1] > new_path_len {
-            let mut new_path = cur_node.path.to_vec();
+            let mut new_path = Vec::with_capacity(new_path_len);
+            new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
             open.push(Reverse(DjikstraNode {
                i: cur_node.i + 1,
@@ -268,7 +271,8 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
          }
          // W
          if grid.has_neighbor_west(cur_node.i) && grid[cur_node.i].west_connected && best_paths[cur_node.i - 1] > new_path_len {
-            let mut new_path = cur_node.path.to_vec();
+            let mut new_path = Vec::with_capacity(new_path_len);
+            new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
             open.push(Reverse(DjikstraNode {
                i: cur_node.i - 1,
