@@ -79,28 +79,31 @@ fn main() {
       //mazegen::wilson(&mut grid, &mut rng);
       //mazegen::hunt_and_kill(&mut grid, &mut rng);
       mazegen::recursive_backtracker(&mut grid, &mut rng);
-      println!("mazegen elapsed: {}", start_time.elapsed().as_float_secs());
+      println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
       println!("{} dead-ends", grid.dead_ends().count());
    }
    // uniform cost search
    let ucs_path = {
       let start_time = Instant::now();
       let path = pathfinding::a_star(&grid, pathfinding::null_h, 0, grid.size() - 1, false).unwrap();
-      println!("uniform cost search elapsed: {}", start_time.elapsed().as_float_secs());
+      println!("uniform cost search elapsed: {}", start_time.elapsed().as_secs_f64());
+      println!("{} nodes generated {} nodes expanded", path.nodes_generated, path.nodes_expanded);
       path
    };
    // a star
    let astar_path = {
       let start_time = Instant::now();
       let path = pathfinding::a_star(&grid, pathfinding::manhattan_h, 0, grid.size() - 1, false).unwrap();
-      println!("astar elapsed: {}", start_time.elapsed().as_float_secs());
+      println!("astar elapsed: {}", start_time.elapsed().as_secs_f64());
+      println!("{} nodes generated {} nodes expanded", path.nodes_generated, path.nodes_expanded);
       path
    };
    // greedy best first
    let gbf_path = {
       let start_time = Instant::now();
       let path = pathfinding::a_star(&grid, pathfinding::manhattan_h, 0, grid.size() - 1, true).unwrap();
-      println!("greedy best first elapsed: {}", start_time.elapsed().as_float_secs());
+      println!("greedy best first elapsed: {}", start_time.elapsed().as_secs_f64());
+      println!("{} nodes generated {} nodes expanded", path.nodes_generated, path.nodes_expanded);
       path
    };
    // write the maze clean

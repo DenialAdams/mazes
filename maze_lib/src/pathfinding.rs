@@ -215,7 +215,6 @@ where
       if cur_node.i == goal {
          let mut final_path = cur_node.path.to_vec();
          final_path.push(goal);
-         println!("{} nodes generated {} nodes expanded", nodes_generated, nodes_expanded);
          return Some(PathData {
             path: final_path.into_boxed_slice(),
             diag: diag_map,
