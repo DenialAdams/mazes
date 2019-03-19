@@ -3,7 +3,9 @@ pipeline {
 
    stages {
       stage('Clean') {
-         sh 'cargo clean'
+         steps {
+            sh 'cargo clean'
+         }
       }
 
       stage('Test') {
