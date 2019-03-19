@@ -189,7 +189,7 @@ where
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
    let mut diag_map = vec![DiagStatus(DIAG_UNEXPLORED); grid.size()].into_boxed_slice();
-   let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
+   let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::with_capacity(grid.size());
    open.push(Reverse(Node {
       priority: h(start, goal, grid.width),
       i: start,
@@ -230,7 +230,7 @@ where
 
 pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
    let mut best_paths = vec![std::usize::MAX; grid.size()].into_boxed_slice();
-   let mut open: BinaryHeap<Reverse<DjikstraNode>> = BinaryHeap::new();
+   let mut open: BinaryHeap<Reverse<DjikstraNode>> = BinaryHeap::with_capacity(grid.size());
    open.push(Reverse(DjikstraNode {
       i: start,
       path: vec![].into_boxed_slice(),
