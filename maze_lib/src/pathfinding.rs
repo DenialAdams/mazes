@@ -132,9 +132,11 @@ fn expand_node(
    diag_map: &mut [DiagStatus],
    nodes_generated: &mut u64,
 ) {
+   let new_path_len = cur_node.path.len() + 1;
    // N
    if grid.has_neighbor_north(cur_node.i) && grid[cur_node.i].north_connected {
-      let mut new_path = cur_node.path.to_vec();
+      let mut new_path = Vec::with_capacity(new_path_len);
+      new_path.extend_from_slice(&cur_node.path);
       new_path.push(cur_node.i);
       open.push(Reverse(Node {
          priority,
@@ -146,7 +148,8 @@ fn expand_node(
    }
    // S
    if grid.has_neighbor_south(cur_node.i) && grid[cur_node.i].south_connected {
-      let mut new_path = cur_node.path.to_vec();
+      let mut new_path = Vec::with_capacity(new_path_len);
+      new_path.extend_from_slice(&cur_node.path);
       new_path.push(cur_node.i);
       open.push(Reverse(Node {
          priority,
@@ -158,7 +161,8 @@ fn expand_node(
    }
    // E
    if grid.has_neighbor_east(cur_node.i) && grid[cur_node.i].east_connected {
-      let mut new_path = cur_node.path.to_vec();
+      let mut new_path = Vec::with_capacity(new_path_len);
+      new_path.extend_from_slice(&cur_node.path);
       new_path.push(cur_node.i);
       open.push(Reverse(Node {
          priority,
@@ -170,7 +174,8 @@ fn expand_node(
    }
    // W
    if grid.has_neighbor_west(cur_node.i) && grid[cur_node.i].west_connected {
-      let mut new_path = cur_node.path.to_vec();
+      let mut new_path = Vec::with_capacity(new_path_len);
+      new_path.extend_from_slice(&cur_node.path);
       new_path.push(cur_node.i);
       open.push(Reverse(Node {
          priority,
