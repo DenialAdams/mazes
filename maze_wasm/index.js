@@ -1,12 +1,12 @@
 import { generate_maze_and_give_me_svg, app_init, pathfind, djikstra, default as init } from './pkg/maze_wasm.js';
 
-var initWasm = false;
-var startNode = null;
-var endNode = null;
+let initWasm = false;
+let startNode = null;
+let endNode = null;
 
 function cleanupPathData() {
    let cells = document.getElementsByClassName('cell');
-   for (var i = 0; i < cells.length; i++) {
+   for (let i = 0; i < cells.length; i++) {
       cells[i].setAttribute('class', 'cell');
       cells[i].style.setProperty('fill', '');
       cells[i].style.setProperty('stroke', '');
@@ -32,7 +32,7 @@ function maybePathfind() {
    if (startNode == endNode) {
       // special, do djikstra gradient visualization
       let cell_colors = djikstra(startNode);
-      for (var i = 0; i < cell_colors.length; i++) {
+      for (let i = 0; i < cell_colors.length; i++) {
          let ele = document.getElementById(i);
          ele.style.setProperty('fill', '#' + cell_colors[i].toString(16).padStart(6, '0'));
          ele.style.setProperty('stroke', '#' + cell_colors[i].toString(16).padStart(6, '0'));
@@ -42,7 +42,7 @@ function maybePathfind() {
       return;  
    }
    let pf_nodes = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
-   for (var i = 0; i < pf_nodes.length; i++) {
+   for (let i = 0; i < pf_nodes.length; i++) {
       if (pf_nodes[i] == 0x00) {
          document.getElementById(i).setAttribute('class', 'cell');
       } else if (pf_nodes[i] == 0x01) {
@@ -65,7 +65,7 @@ window.pathfindChange = function pathfindChange(event) {
    } else {
       maybePathfind();
    }
-}
+};
 
 window.onCellClick = function onCellClick(event) {
    if (startNode != null) {
@@ -74,7 +74,7 @@ window.onCellClick = function onCellClick(event) {
    startNode = event.target.id;
    document.getElementById(startNode).setAttribute('class', 'cell selected');
    maybePathfind();
-}
+};
 
 window.onCellRightClick = function onCellRightClick(event) {
    event.preventDefault();
@@ -84,7 +84,7 @@ window.onCellRightClick = function onCellRightClick(event) {
    endNode = event.target.id;
    document.getElementById(endNode).setAttribute('class', 'cell selected');
    maybePathfind();
-}
+};
 
 window.genSetMaze = async function genSetMaze() {
    if (!initWasm) {
@@ -106,7 +106,7 @@ window.genSetMaze = async function genSetMaze() {
       element.addEventListener('click', onCellClick);
       element.addEventListener('contextmenu', onCellRightClick);
    });
-   let sne = document.getElementById(startNode)
+   let sne = document.getElementById(startNode);
    if (sne == null) {
       startNode = null;
    } else {
@@ -119,4 +119,4 @@ window.genSetMaze = async function genSetMaze() {
       ene.setAttribute('class', 'cell selected');
    }
    maybePathfind();
-}
+};
