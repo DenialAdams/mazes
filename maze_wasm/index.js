@@ -20,7 +20,7 @@ function cleanupPathData() {
 }
 
 function maybePathfind() {
-   if (startNode == null || endNode == null || initWasm == false) {
+   if (startNode == null || endNode == null || !initWasm) {
       return;
    }
    let pf_algo_ele = document.getElementById("pathfinding-algo");
