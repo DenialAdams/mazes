@@ -4,12 +4,6 @@ let initWasm = false;
 let startNode = null;
 let endNode = null;
 
-function htmlToNode(html) {
-   var template = document.createElement('template');
-   template.innerHTML = html;
-   return template.content.firstChild;
-}
-
 function cleanupPathData() {
    let cells = document.getElementsByClassName('cell');
    for (let i = 0; i < cells.length; i++) {
@@ -102,13 +96,7 @@ window.genSetMaze = async function genSetMaze() {
    let height = document.getElementById("maze_height").valueAsNumber;
    let mazegen_algo_ele = document.getElementById("mazegen-algo");
    let mazegen_algo = mazegen_algo_ele.options[mazegen_algo_ele.selectedIndex].value;
-   let new_svg = generate_maze_and_give_me_svg(width, height, mazegen_algo);
-   let old_svg_ele = document.getElementsByTagName("svg");
-   if (old_svg_ele.length > 0) {
-      old_svg_ele[0].parentNode.replaceChild(htmlToNode(new_svg), old_svg_ele[0]);
-   } else {
-      document.getElementsByTagName("main")[0].insertAdjacentHTML("afterbegin", new_svg);
-   }
+   document.getElementById("maze-svg").innerHTML = generate_maze_and_give_me_svg(width, height, mazegen_algo);
    let grid_cells = document.getElementsByClassName("cell");
    Array.from(grid_cells).forEach(function(element) {
       element.addEventListener('click', onCellClick);
