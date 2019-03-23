@@ -2,7 +2,7 @@ body {
    display: flex;
    justify-content: center;
    align-items: center;
-   height: 85vh;
+   height: 80vh;
 }
 
 main {
@@ -13,16 +13,27 @@ main {
    height: 100%;
 }
 
+#options {
+   display: flex;
+   justify-content: space-around;
+   flex-flow: row;
+   flex: 0 0 auto;
+}
+
+.opt-item {
+   display: flex;
+   flex-flow: column;
+   max-width: 30%;
+}
+
 select {
    margin-top: 5px;
    margin-bottom: 5px;
-   flex: 0 0 auto;
 }
 
 button {
    margin-top: 5px;
    margin-bottom: 5px;
-   flex: 0 0 auto;
 }
 
 #maze-svg {

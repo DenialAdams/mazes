@@ -9,23 +9,35 @@
   <body>
       <main>
          <div id="maze-svg"><svg></svg></div>
-         <input id="maze_width" type="number" min="2" max="100" value="12" />
-         <input id="maze_height" type="number" min="2" max="100" value="12" />
-         <select onchange="pathfindChange()" id="pathfinding-algo">
-            <option value="None">None</option>
-            <option value="UniformCostSearch">Uniform Cost Search</option>
-            <option value="AStar">A*</option>
-            <option value="GreedyBestFirst">Greedy Best First</option>
-         </select>
-         <select id="mazegen-algo">
-            <option value="BinaryTree">Binary Tree</option>
-            <option value="Sidewinder">Sidewinder</option>
-            <option value="AldousBroder">Aldous-Broder</option>
-            <option value="Wilson">Wilson's</option>
-            <option value="HuntAndKill">Hunt and Kill</option>
-            <option value="RecursiveBacktracker">Recursive Backtracker</option>
-         </select>
-         <button onclick="genSetMaze()">Generate maze</button>
+         <div id="options">
+            <div id="mazegen-options" class="opt-item">
+               <h4>Mazegen</h4><br>
+               Width: <input id="maze_width" type="number" min="2" max="100" value="12" />
+               Height: <input id="maze_height" type="number" min="2" max="100" value="12" />
+               Algorithm: <select id="mazegen-algo">
+                  <option value="BinaryTree">Binary Tree</option>
+                  <option value="Sidewinder">Sidewinder</option>
+                  <option value="AldousBroder">Aldous-Broder</option>
+                  <option value="Wilson">Wilson's</option>
+                  <option value="HuntAndKill">Hunt and Kill</option>
+                  <option value="RecursiveBacktracker">Recursive Backtracker</option>
+               </select>
+               <button onclick="genSetMaze()">Generate maze</button>
+            </div>
+            <div id="pathfind-options" class="opt-item">
+               <h4>Pathfinding</h4><br>
+               <p>
+               Left and right click to select start and destination nodes respectively. Try left and right clicking on the same node for a pretty visualization.
+               </p>
+               Algorithm:
+               <select onchange="pathfindChange()" id="pathfinding-algo">
+                     <option value="None">None</option>
+                     <option value="UniformCostSearch">Uniform Cost Search</option>
+                     <option value="AStar">A*</option>
+                     <option value="GreedyBestFirst">Greedy Best First</option>
+               </select>
+            </div>
+         </div>
       </main>
    </body>
 </html>
