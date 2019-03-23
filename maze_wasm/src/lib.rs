@@ -62,7 +62,25 @@ pub fn djikstra(start: usize) -> Box<[u32]> {
 }
 
 #[wasm_bindgen]
-pub fn generate_maze_and_give_me_svg(width: usize, height: usize, mazegen_algo: &str) -> String {
+pub fn change_grid(width: usize, height: usize) -> String {
+   let app = unsafe { MAZE_APP.as_mut().unwrap() };
+   let mut result = Vec::new();
+   app.grid = Grid::new(width, height);
+   writeln!(
+      result,
+      "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">",
+      (app.grid.width * 3) + 6,
+      (app.grid.height * 3) + 6,
+   ).unwrap();
+   writeln!(result, "<g id=\"g_skele\">").unwrap();
+   app.grid.write_skeleton_as_svg(&mut result).unwrap();
+   writeln!(result, "</g>").unwrap();
+   writeln!(result, "</svg>").unwrap();
+   unsafe { String::from_utf8_unchecked(result) }
+}
+
+#[wasm_bindgen]
+pub fn carve_maze(mazegen_algo: &str) -> String {
    let app = unsafe { MAZE_APP.as_mut().unwrap() };
    let algo = match mazegen_algo {
       "BinaryTree" => mazegen::Algo::BinaryTree,
@@ -74,21 +92,10 @@ pub fn generate_maze_and_give_me_svg(width: usize, height: usize, mazegen_algo: 
       _ => panic!("Got a bad mazegen algo from JS"),
    };
    let mut result = Vec::new();
-   app.grid = Grid::new(width, height);
+   app.grid.reset();
    mazegen::carve_maze(&mut app.grid, &mut app.rng, algo);
-   writeln!(
-      result,
-      "<svg viewBox=\"-3 -3 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">",
-      (app.grid.width * 3) + 6,
-      (app.grid.height * 3) + 6,
-   )
-   .unwrap();
-   writeln!(result, "<g id=\"g_skele\">").unwrap();
-   app.grid.write_skeleton_as_svg(&mut result).unwrap();
-   writeln!(result, "</g>").unwrap();
    writeln!(result, "<g id=\"g_maze\">").unwrap();
    app.grid.write_maze_as_svg(&mut result).unwrap();
    writeln!(result, "</g>").unwrap();
-   writeln!(result, "</svg>").unwrap();
    unsafe { String::from_utf8_unchecked(result) }
 }

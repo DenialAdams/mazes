@@ -1,8 +1,10 @@
-import { generate_maze_and_give_me_svg, app_init, pathfind, djikstra, default as init } from './pkg/maze_wasm.js';
+import { change_grid, carve_maze, app_init, pathfind, djikstra, default as init } from './pkg/maze_wasm.js';
 
 let initWasm = false;
 let startNode = null;
 let endNode = null;
+let curGridWidth = 0;
+let curGridHeight = 0;
 
 function cleanupPathData() {
    let cells = document.getElementsByClassName('cell');
@@ -86,33 +88,56 @@ window.onCellRightClick = function onCellRightClick(event) {
    maybePathfind();
 };
 
+function maybeUpdateGrid(width, height) {
+   if (curGridWidth != width || curGridHeight != height) {
+      // update dom
+      document.getElementById("maze-svg").innerHTML = change_grid(width, height);
+      // visually re-select selected cells
+      let sne = document.getElementById(startNode);
+      if (sne == null) {
+         startNode = null;
+      } else {
+         sne.setAttribute('class', 'cell selected');
+      }
+      let ene = document.getElementById(endNode);
+      if (ene == null) {
+         endNode = null;
+      } else {
+         ene.setAttribute('class', 'cell selected');
+      }
+      // add event listeners for left + right click
+      let grid_cells = document.getElementsByClassName("cell");
+      Array.from(grid_cells).forEach(function(element) {
+         element.addEventListener('click', onCellClick);
+         element.addEventListener('contextmenu', onCellRightClick);
+      });
+      curGridWidth = width;
+      curGridHeight = height;
+   }
+}
+
 window.genSetMaze = async function genSetMaze() {
+   // init
    if (!initWasm) {
       await init('./pkg/maze_wasm_bg.wasm');
       app_init();
       initWasm = true;
    }
+   // update grid skeleton
    let width = document.getElementById("maze_width").valueAsNumber;
    let height = document.getElementById("maze_height").valueAsNumber;
+   if (width <= 0 || height <= 0) {
+      return;
+   }
+   maybeUpdateGrid(width, height);
+   // maze lines
    let mazegen_algo_ele = document.getElementById("mazegen-algo");
    let mazegen_algo = mazegen_algo_ele.options[mazegen_algo_ele.selectedIndex].value;
-   document.getElementById("maze-svg").innerHTML = generate_maze_and_give_me_svg(width, height, mazegen_algo);
-   let grid_cells = document.getElementsByClassName("cell");
-   Array.from(grid_cells).forEach(function(element) {
-      element.addEventListener('click', onCellClick);
-      element.addEventListener('contextmenu', onCellRightClick);
-   });
-   let sne = document.getElementById(startNode);
-   if (sne == null) {
-      startNode = null;
-   } else {
-      sne.setAttribute('class', 'cell selected');
+   let maze_lines_svg = carve_maze(mazegen_algo);
+   let maze_lines_ele = document.getElementById("g_maze");
+   if (maze_lines_ele != null) {
+      maze_lines_ele.remove();
    }
-   let ene = document.getElementById(endNode);
-   if (ene == null) {
-      endNode = null;
-   } else {
-      ene.setAttribute('class', 'cell selected');
-   }
+   document.getElementById("g_skele").insertAdjacentHTML('afterend', maze_lines_svg);
    maybePathfind();
 };
