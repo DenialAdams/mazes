@@ -141,3 +141,7 @@ window.genSetMaze = async function genSetMaze() {
    document.getElementById("g_skele").insertAdjacentHTML('afterend', maze_lines_svg);
    maybePathfind();
 };
+
+window.addEventListener('DOMContentLoaded', (event) => {
+   genSetMaze();
+});
