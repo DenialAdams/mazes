@@ -1,13 +1,10 @@
-#![feature(duration_float)]
-
 use maze_lib::grid::Grid;
 use maze_lib::mazegen;
-use maze_lib::pathfinding::{self, PathData};
 use rand::FromEntropy;
 use rand_xorshift::XorShiftRng;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
-use std::time::Instant;
+//use std::time::Instant;
 
 fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
    let mut destination = BufWriter::new(File::create(format!("{}.svg", name)).unwrap());
@@ -18,14 +15,6 @@ fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
       (grid.height * 3) + 6
    )?;
    Ok(destination)
-}
-
-fn write_path_and_maze_to_svg(name: &'static str, path_data: &PathData, grid: &Grid) -> io::Result<()> {
-   let mut dest = init_svg(name, grid)?;
-   pathfinding::write_diag_to_svg(&path_data.diag, grid.width, &mut dest)?;
-   pathfinding::write_path_to_svg(&path_data.path, grid.width, &mut dest)?;
-   grid.write_maze_as_svg(&mut dest)?;
-   writeln!(dest, "</svg>")
 }
 
 fn main() {
@@ -72,47 +61,20 @@ fn main() {
    let mut grid = Grid::new(100, 100);
    // mazegen
    {
-      let start_time = Instant::now();
+      //let start_time = Instant::now();
       //mazegen::binary_tree(&mut grid, &mut rng);
       //mazegen::sidewinder(&mut grid, &mut rng);
       //mazegen::aldous_broder(&mut grid, &mut rng);
       //mazegen::wilson(&mut grid, &mut rng);
       //mazegen::hunt_and_kill(&mut grid, &mut rng);
       mazegen::recursive_backtracker(&mut grid, &mut rng);
-      println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
+      //println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
       println!("{} dead-ends", grid.dead_ends().count());
    }
-   // uniform cost search
-   let ucs_path = {
-      let start_time = Instant::now();
-      let path = pathfinding::a_star(&grid, pathfinding::null_h, 0, grid.size() - 1, false).unwrap();
-      println!("uniform cost search elapsed: {}", start_time.elapsed().as_secs_f64());
-      println!("{} nodes generated {} nodes expanded", path.nodes_generated, path.nodes_expanded);
-      path
-   };
-   // a star
-   let astar_path = {
-      let start_time = Instant::now();
-      let path = pathfinding::a_star(&grid, pathfinding::manhattan_h, 0, grid.size() - 1, false).unwrap();
-      println!("astar elapsed: {}", start_time.elapsed().as_secs_f64());
-      println!("{} nodes generated {} nodes expanded", path.nodes_generated, path.nodes_expanded);
-      path
-   };
-   // greedy best first
-   let gbf_path = {
-      let start_time = Instant::now();
-      let path = pathfinding::a_star(&grid, pathfinding::manhattan_h, 0, grid.size() - 1, true).unwrap();
-      println!("greedy best first elapsed: {}", start_time.elapsed().as_secs_f64());
-      println!("{} nodes generated {} nodes expanded", path.nodes_generated, path.nodes_expanded);
-      path
-   };
    // write the maze clean
    {
       let mut dest = init_svg("maze", &grid).unwrap();
       grid.write_maze_as_svg(&mut dest).unwrap();
       writeln!(dest, "</svg>").unwrap();
    }
-   write_path_and_maze_to_svg("astar", &astar_path, &grid).unwrap();
-   write_path_and_maze_to_svg("ucs", &ucs_path, &grid).unwrap();
-   write_path_and_maze_to_svg("greedy_best_first", &gbf_path, &grid).unwrap();
 }
