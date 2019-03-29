@@ -221,12 +221,12 @@ impl Grid {
    }
 
    pub fn write_maze_as_svg<W: Write>(&self, dest: &mut W) -> io::Result<()> {
-      let mut stroked_lines: u64 = 2;
       // top wall
       writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"{}\" y2=\"0\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", self.width * 3)?;
       // west wall
       writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", self.height * 3)?;
       let mut current_horizontal_line_segment: Option<HorizontalLineSegment> = None;
+      let mut current_vertical_line_segments: Box<[Option<VerticalLineSegment>]> = vec![None; self.width].into_boxed_slice();
       for (i, cell) in self.inner.iter().enumerate() {
          let row = i / self.width;
          let col = i % self.width;
@@ -234,17 +234,17 @@ impl Grid {
          let upper_left_y = row * 3;
          let upper_left_x = col * 3;
 
+         let current_vertical_line_segment: &mut Option<VerticalLineSegment> = &mut current_vertical_line_segments[col];
+
          if cell.south_connected {
             if let Some(ref hls) = current_horizontal_line_segment {
                writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", hls.x_1, hls.y, hls.x_2, hls.y)?;
-               stroked_lines += 1;
                current_horizontal_line_segment = None;
             }
          } else {
             if let Some(ref mut hls) = current_horizontal_line_segment {
                if hls.y != upper_left_y + 3 {
                   writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", hls.x_1, hls.y, hls.x_2, hls.y)?;
-                  stroked_lines += 1;
                   hls.y = upper_left_y + 3;
                   hls.x_1 = upper_left_x;
                   hls.x_2 = upper_left_x + 3;
@@ -260,16 +260,38 @@ impl Grid {
             }
          }
 
-         if !cell.east_connected {
-            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", upper_left_x + 3, upper_left_y, upper_left_x + 3, upper_left_y + 3)?;
-            stroked_lines += 1;
+         if cell.east_connected {
+            if let Some(ref vls) = current_vertical_line_segment {
+               writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", vls.x, vls.y_1, vls.x, vls.y_2)?;
+               *current_vertical_line_segment = None;
+            }
+         } else {
+            if let Some(ref mut vls) = current_vertical_line_segment {
+               if vls.x != upper_left_x + 3 {
+                  writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", vls.x, vls.y_1, vls.x, vls.y_2)?;
+                  vls.x = upper_left_x + 3;
+                  vls.y_1 = upper_left_y;
+                  vls.y_2 = upper_left_y + 3;
+               } else {
+                  vls.y_2 += 3;
+               }
+            } else {
+               *current_vertical_line_segment = Some(VerticalLineSegment {
+                  x: upper_left_x + 3,
+                  y_1: upper_left_y,
+                  y_2: upper_left_y + 3,
+               })
+            }
          }
       }
       if let Some(ref hls) = current_horizontal_line_segment {
          writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", hls.x_1, hls.y, hls.x_2, hls.y)?;
-         stroked_lines += 1;
       }
-      println!("{} stroked lines", stroked_lines);
+      for vertical_line_segment in current_vertical_line_segments.iter() {
+         if let Some(ref vls) = vertical_line_segment {
+            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", vls.x, vls.y_1, vls.x, vls.y_2)?;
+         }
+      }
       Ok(())
    }
 }
@@ -278,6 +300,13 @@ struct HorizontalLineSegment {
    y: usize,
    x_1: usize,
    x_2: usize,
+}
+
+#[derive(Clone)]
+struct VerticalLineSegment {
+   x: usize,
+   y_1: usize,
+   y_2: usize,
 }
 
 #[cfg(test)]
