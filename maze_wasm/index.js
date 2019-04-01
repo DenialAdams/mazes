@@ -45,13 +45,11 @@ function maybePathfind() {
    }
    let pf_nodes = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
    for (let i = 0; i < pf_nodes.length; i++) {
-      if (pf_nodes[i] == 0x00) {
-         document.getElementById(i).setAttribute('class', 'cell');
-      } else if (pf_nodes[i] == 0x01) {
+      if (pf_nodes[i] == 0x01) {
          document.getElementById(i).setAttribute('class', 'cell generated');
       } else if (pf_nodes[i] == 0x03) {
          document.getElementById(i).setAttribute('class', 'cell expanded');
-      } else {
+      } else if (pf_nodes[i] == 0x07) {
          document.getElementById(i).setAttribute('class', 'cell path');
       }
   }
@@ -133,7 +131,10 @@ window.genSetMaze = async function genSetMaze() {
    // maze lines
    let mazegen_algo_ele = document.getElementById("mazegen-algo");
    let mazegen_algo = mazegen_algo_ele.options[mazegen_algo_ele.selectedIndex].value;
-   let maze_lines_svg = carve_maze(mazegen_algo);
+   let mazegen_seed_ele = document.getElementById("mazegen-seed");
+   let mazegen_seed = mazegen_seed_ele.value;
+   let maze_lines_svg = carve_maze(mazegen_algo, mazegen_seed);
+   mazegen_seed_ele.value = "";
    let maze_lines_ele = document.getElementById("g_maze");
    if (maze_lines_ele != null) {
       maze_lines_ele.remove();

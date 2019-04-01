@@ -226,7 +226,8 @@ impl Grid {
       // west wall
       writeln!(dest, "<line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", self.height * 3)?;
       let mut current_horizontal_line_segment: Option<HorizontalLineSegment> = None;
-      let mut current_vertical_line_segments: Box<[Option<VerticalLineSegment>]> = vec![None; self.width].into_boxed_slice();
+      let mut current_vertical_line_segments: Box<[Option<VerticalLineSegment>]> =
+         vec![None; self.width].into_boxed_slice();
       for (i, cell) in self.inner.iter().enumerate() {
          let row = i / self.width;
          let col = i % self.width;

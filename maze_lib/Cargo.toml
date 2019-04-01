@@ -6,4 +6,3 @@ edition = "2018"
 
 [dependencies]
 rand = "0.6"
-fxhash = "0.2"
