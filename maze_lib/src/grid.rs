@@ -241,23 +241,21 @@ impl Grid {
                writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", hls.x_1, hls.y, hls.x_2, hls.y)?;
                current_horizontal_line_segment = None;
             }
-         } else {
-            if let Some(ref mut hls) = current_horizontal_line_segment {
-               if hls.y != upper_left_y + 3 {
-                  writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", hls.x_1, hls.y, hls.x_2, hls.y)?;
-                  hls.y = upper_left_y + 3;
-                  hls.x_1 = upper_left_x;
-                  hls.x_2 = upper_left_x + 3;
-               } else {
-                  hls.x_2 += 3;
-               }
+         } else if let Some(ref mut hls) = current_horizontal_line_segment {
+            if hls.y != upper_left_y + 3 {
+               writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", hls.x_1, hls.y, hls.x_2, hls.y)?;
+               hls.y = upper_left_y + 3;
+               hls.x_1 = upper_left_x;
+               hls.x_2 = upper_left_x + 3;
             } else {
-               current_horizontal_line_segment = Some(HorizontalLineSegment {
-                  y: upper_left_y + 3,
-                  x_1: upper_left_x,
-                  x_2: upper_left_x + 3,
-               })
+               hls.x_2 += 3;
             }
+         } else {
+            current_horizontal_line_segment = Some(HorizontalLineSegment {
+               y: upper_left_y + 3,
+               x_1: upper_left_x,
+               x_2: upper_left_x + 3,
+            })
          }
 
          if cell.east_connected {
@@ -265,23 +263,21 @@ impl Grid {
                writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", vls.x, vls.y_1, vls.x, vls.y_2)?;
                *current_vertical_line_segment = None;
             }
-         } else {
-            if let Some(ref mut vls) = current_vertical_line_segment {
-               if vls.x != upper_left_x + 3 {
-                  writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", vls.x, vls.y_1, vls.x, vls.y_2)?;
-                  vls.x = upper_left_x + 3;
-                  vls.y_1 = upper_left_y;
-                  vls.y_2 = upper_left_y + 3;
-               } else {
-                  vls.y_2 += 3;
-               }
+         } else if let Some(ref mut vls) = current_vertical_line_segment {
+            if vls.x != upper_left_x + 3 {
+               writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" style=\"stroke:black;stroke-linecap:square;stroke-width:0.5px\" />", vls.x, vls.y_1, vls.x, vls.y_2)?;
+               vls.x = upper_left_x + 3;
+               vls.y_1 = upper_left_y;
+               vls.y_2 = upper_left_y + 3;
             } else {
-               *current_vertical_line_segment = Some(VerticalLineSegment {
-                  x: upper_left_x + 3,
-                  y_1: upper_left_y,
-                  y_2: upper_left_y + 3,
-               })
+               vls.y_2 += 3;
             }
+         } else {
+            *current_vertical_line_segment = Some(VerticalLineSegment {
+               x: upper_left_x + 3,
+               y_1: upper_left_y,
+               y_2: upper_left_y + 3,
+            })
          }
       }
       if let Some(ref hls) = current_horizontal_line_segment {

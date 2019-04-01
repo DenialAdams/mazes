@@ -36,6 +36,7 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
       "UniformCostSearch" => pathfinding::a_star(&app.grid, pathfinding::null_h, start, goal, false),
       "AStar" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, false),
       "GreedyBestFirst" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, true),
+      "DepthFirstSearch" => pathfinding::dfs(&app.grid, start, goal),
       _ => panic!("Got a bad pathfinding algo from JS"),
    }
    .unwrap();
