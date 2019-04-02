@@ -80,3 +80,9 @@ svg {
    fill: #FF6666;
    stroke: #FF6666;
 }
+
+#g_maze {
+   stroke: black;
+   stroke-linecap: square;
+   stroke-width: 0.5px;
+}
