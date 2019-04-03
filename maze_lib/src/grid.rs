@@ -64,39 +64,17 @@ impl Display for Grid {
    }
 }
 
-pub trait GridIndex: Copy {
-   fn as_1d(&self, grid_width: usize) -> usize;
-}
-
-impl GridIndex for (usize, usize) {
-   fn as_1d(&self, grid_width: usize) -> usize {
-      self.0 * grid_width + self.1
-   }
-}
-
-impl GridIndex for usize {
-   fn as_1d(&self, _grid_width: usize) -> usize {
-      *self
-   }
-}
-
-impl<I> Index<I> for Grid
-where
-   I: GridIndex,
-{
+impl Index<usize> for Grid {
    type Output = Cell;
 
-   fn index(&self, index: I) -> &Cell {
-      &self.inner[index.as_1d(self.height)]
+   fn index(&self, index: usize) -> &Cell {
+      &self.inner[index]
    }
 }
 
-impl<I> IndexMut<I> for Grid
-where
-   I: GridIndex,
-{
-   fn index_mut(&mut self, index: I) -> &mut Cell {
-      &mut self.inner[index.as_1d(self.height)]
+impl IndexMut<usize> for Grid {
+   fn index_mut(&mut self, index: usize) -> &mut Cell {
+      &mut self.inner[index]
    }
 }
 
@@ -119,19 +97,16 @@ impl Grid {
       self.inner.iter().filter(|x| x.num_connections() == 1)
    }
 
-   pub fn get<I: GridIndex>(&mut self, index: I) -> Option<&Cell> {
-      self.inner.get(index.as_1d(self.width))
+   pub fn get(&mut self, index: usize) -> Option<&Cell> {
+      self.inner.get(index)
    }
 
-   pub fn get_mut<I: GridIndex>(&mut self, index: I) -> Option<&mut Cell> {
-      self.inner.get_mut(index.as_1d(self.width))
+   pub fn get_mut(&mut self, index: usize) -> Option<&mut Cell> {
+      self.inner.get_mut(index)
    }
 
    /// If the cells are not neighbors, an incorrect connection will be made
-   pub fn connect_neighbors<I: GridIndex>(&mut self, i1: I, i2: I) {
-      let i1 = i1.as_1d(self.width);
-      let i2 = i2.as_1d(self.width);
-
+   pub fn connect_neighbors(&mut self, i1: usize, i2: usize) {
       if self.has_neighbor_north(i1) && i2 == i1 - self.width {
          self.connect_cell_north(i1);
       } else if i2 == i1 + self.width {
@@ -143,24 +118,23 @@ impl Grid {
       }
    }
 
-   pub fn has_neighbor_north<I: GridIndex>(&self, index: I) -> bool {
-      index.as_1d(self.width) >= self.width
+   pub fn has_neighbor_north(&self, index: usize) -> bool {
+      index >= self.width
    }
 
-   pub fn has_neighbor_south<I: GridIndex>(&self, index: I) -> bool {
-      index.as_1d(self.width) < (self.width * (self.height - 1))
+   pub fn has_neighbor_south(&self, index: usize) -> bool {
+      index < (self.width * (self.height - 1))
    }
 
-   pub fn has_neighbor_east<I: GridIndex>(&self, index: I) -> bool {
-      index.as_1d(self.width) % self.width != (self.width - 1)
+   pub fn has_neighbor_east(&self, index: usize) -> bool {
+      index % self.width != (self.width - 1)
    }
 
-   pub fn has_neighbor_west<I: GridIndex>(&self, index: I) -> bool {
-      index.as_1d(self.width) % self.width != 0
+   pub fn has_neighbor_west(&self, index: usize) -> bool {
+      index % self.width != 0
    }
 
-   pub fn neighbors<I: GridIndex>(&self, index: I, buf: &mut Vec<usize>) {
-      let index = index.as_1d(self.width);
+   pub fn neighbors(&self, index: usize, buf: &mut Vec<usize>) {
       if self.has_neighbor_north(index) {
          buf.push(index - self.width);
       }
@@ -175,28 +149,26 @@ impl Grid {
       }
    }
 
-   pub fn connect_cell_north<I: GridIndex>(&mut self, index: I) {
+   pub fn connect_cell_north(&mut self, index: usize) {
       let width = self.width;
       self[index].north_connected = true;
-      self[index.as_1d(width) - width].south_connected = true;
+      self[index - width].south_connected = true;
    }
 
-   pub fn connect_cell_south<I: GridIndex>(&mut self, index: I) {
+   pub fn connect_cell_south(&mut self, index: usize) {
       let width = self.width;
       self[index].south_connected = true;
-      self[index.as_1d(width) + width].north_connected = true;
+      self[index + width].north_connected = true;
    }
 
-   pub fn connect_cell_west<I: GridIndex>(&mut self, index: I) {
-      let width = self.width;
+   pub fn connect_cell_west(&mut self, index: usize) {
       self[index].west_connected = true;
-      self[index.as_1d(width) - 1].east_connected = true;
+      self[index - 1].east_connected = true;
    }
 
-   pub fn connect_cell_east<I: GridIndex>(&mut self, index: I) {
-      let width = self.width;
+   pub fn connect_cell_east(&mut self, index: usize) {
       self[index].east_connected = true;
-      self[index.as_1d(width) + 1].west_connected = true;
+      self[index + 1].west_connected = true;
    }
 
    pub fn size(&self) -> usize {
