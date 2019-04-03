@@ -211,12 +211,20 @@ impl Grid {
 
          if cell.south_connected {
             if let Some(ref hls) = current_horizontal_line_segment {
-               writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>", hls.x_1, hls.y, hls.x_2, hls.y)?;
+               writeln!(
+                  dest,
+                  "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+                  hls.x_1, hls.y, hls.x_2, hls.y
+               )?;
                current_horizontal_line_segment = None;
             }
          } else if let Some(ref mut hls) = current_horizontal_line_segment {
             if hls.y != upper_left_y + 3 {
-               writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>", hls.x_1, hls.y, hls.x_2, hls.y)?;
+               writeln!(
+                  dest,
+                  "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+                  hls.x_1, hls.y, hls.x_2, hls.y
+               )?;
                hls.y = upper_left_y + 3;
                hls.x_1 = upper_left_x;
                hls.x_2 = upper_left_x + 3;
@@ -233,12 +241,20 @@ impl Grid {
 
          if cell.east_connected {
             if let Some(ref vls) = current_vertical_line_segment {
-               writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>", vls.x, vls.y_1, vls.x, vls.y_2)?;
+               writeln!(
+                  dest,
+                  "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+                  vls.x, vls.y_1, vls.x, vls.y_2
+               )?;
                *current_vertical_line_segment = None;
             }
          } else if let Some(ref mut vls) = current_vertical_line_segment {
             if vls.x != upper_left_x + 3 {
-               writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>", vls.x, vls.y_1, vls.x, vls.y_2)?;
+               writeln!(
+                  dest,
+                  "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+                  vls.x, vls.y_1, vls.x, vls.y_2
+               )?;
                vls.x = upper_left_x + 3;
                vls.y_1 = upper_left_y;
                vls.y_2 = upper_left_y + 3;
@@ -254,11 +270,19 @@ impl Grid {
          }
       }
       if let Some(ref hls) = current_horizontal_line_segment {
-         writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>", hls.x_1, hls.y, hls.x_2, hls.y)?;
+         writeln!(
+            dest,
+            "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+            hls.x_1, hls.y, hls.x_2, hls.y
+         )?;
       }
       for vertical_line_segment in current_vertical_line_segments.iter() {
          if let Some(ref vls) = vertical_line_segment {
-            writeln!(dest, "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>", vls.x, vls.y_1, vls.x, vls.y_2)?;
+            writeln!(
+               dest,
+               "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+               vls.x, vls.y_1, vls.x, vls.y_2
+            )?;
          }
       }
       Ok(())
