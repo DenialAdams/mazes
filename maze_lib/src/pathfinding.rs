@@ -3,7 +3,7 @@ use std::cmp::{Ord, Ordering, PartialOrd, Reverse};
 use std::collections::BinaryHeap;
 use std::io::{self, Write};
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 struct PriorityNode {
    priority: usize,
    i: usize,
@@ -22,7 +22,7 @@ impl Ord for PriorityNode {
    }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 struct Node {
    i: usize,
    path: Box<[usize]>,
@@ -161,7 +161,7 @@ where
          let new_path_len = cur_node.path.len() + 1;
          let g = new_path_len * !greedy as usize;
          // N
-         if grid.has_neighbor_north(cur_node.i) && grid[cur_node.i].north_connected {
+         if grid[cur_node.i].north_connected {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -175,7 +175,7 @@ where
             diag_map[i_north].0 |= DIAG_GENERATED;
          }
          // S
-         if grid.has_neighbor_south(cur_node.i) && grid[cur_node.i].south_connected {
+         if grid[cur_node.i].south_connected {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -189,7 +189,7 @@ where
             diag_map[i_south].0 |= DIAG_GENERATED;
          }
          // E
-         if grid.has_neighbor_east(cur_node.i) && grid[cur_node.i].east_connected {
+         if grid[cur_node.i].east_connected {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -203,7 +203,7 @@ where
             diag_map[i_east].0 |= DIAG_GENERATED;
          }
          // W
-         if grid.has_neighbor_west(cur_node.i) && grid[cur_node.i].west_connected {
+         if grid[cur_node.i].west_connected {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -246,6 +246,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
       }
 
       // Expand
+      let stack_size_before_expansion = stack.len();
       {
          let new_path_len = cur_node.path.len() + 1;
          let i_north = cur_node.i - grid.width;
@@ -253,10 +254,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
          let i_east = cur_node.i + 1;
          let i_west = cur_node.i - 1;
          // N
-         if grid.has_neighbor_north(cur_node.i)
-            && grid[cur_node.i].north_connected
-            && diag_map[i_north].0 == DIAG_UNEXPLORED
-         {
+         if grid[cur_node.i].north_connected && diag_map[i_north].0 == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -268,10 +266,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
             diag_map[i_north].0 |= DIAG_GENERATED;
          }
          // S
-         if grid.has_neighbor_south(cur_node.i)
-            && grid[cur_node.i].south_connected
-            && diag_map[i_south].0 == DIAG_UNEXPLORED
-         {
+         if grid[cur_node.i].south_connected && diag_map[i_south].0 == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -283,10 +278,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
             diag_map[i_south].0 |= DIAG_GENERATED;
          }
          // E
-         if grid.has_neighbor_east(cur_node.i)
-            && grid[cur_node.i].east_connected
-            && diag_map[i_east].0 == DIAG_UNEXPLORED
-         {
+         if grid[cur_node.i].east_connected && diag_map[i_east].0 == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -298,10 +290,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
             diag_map[i_east].0 |= DIAG_GENERATED;
          }
          // W
-         if grid.has_neighbor_west(cur_node.i)
-            && grid[cur_node.i].west_connected
-            && diag_map[i_west].0 == DIAG_UNEXPLORED
-         {
+         if grid[cur_node.i].west_connected && diag_map[i_west].0 == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -315,6 +304,13 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
       }
       nodes_expanded += 1;
       diag_map[cur_node.i].0 = DIAG_EXPANDED;
+      let new_stack_len = stack.len();
+      let newly_added_elems = &mut stack[stack_size_before_expansion..new_stack_len];
+      newly_added_elems.sort_unstable_by(|a, b| {
+         // note we compare b to a (not a to b) in order to obtain a reverse sort,
+         // such that the elements with the smallest h are at the top of the slice
+         manhattan_h(b.i, goal, grid.width).cmp(&manhattan_h(a.i, goal, grid.width))
+      })
    }
    None
 }
@@ -331,10 +327,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
       {
          let new_path_len = cur_node.path.len() + 1;
          // N
-         if grid.has_neighbor_north(cur_node.i)
-            && grid[cur_node.i].north_connected
-            && best_paths[cur_node.i - grid.width] > new_path_len
-         {
+         if grid[cur_node.i].north_connected && best_paths[cur_node.i - grid.width] > new_path_len {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -344,10 +337,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
             }));
          }
          // S
-         if grid.has_neighbor_south(cur_node.i)
-            && grid[cur_node.i].south_connected
-            && best_paths[cur_node.i + grid.width] > new_path_len
-         {
+         if grid[cur_node.i].south_connected && best_paths[cur_node.i + grid.width] > new_path_len {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -357,10 +347,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
             }));
          }
          // E
-         if grid.has_neighbor_east(cur_node.i)
-            && grid[cur_node.i].east_connected
-            && best_paths[cur_node.i + 1] > new_path_len
-         {
+         if grid[cur_node.i].east_connected && best_paths[cur_node.i + 1] > new_path_len {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -370,10 +357,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
             }));
          }
          // W
-         if grid.has_neighbor_west(cur_node.i)
-            && grid[cur_node.i].west_connected
-            && best_paths[cur_node.i - 1] > new_path_len
-         {
+         if grid[cur_node.i].west_connected && best_paths[cur_node.i - 1] > new_path_len {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
