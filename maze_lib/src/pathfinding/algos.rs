@@ -1,4 +1,6 @@
 use crate::grid::Grid;
+use super::diagnostic_map::{DiagMap, FinalizedDiagMap, DIAG_UNEXPLORED, DIAG_GENERATED, DIAG_EXPANDED};
+use super::heuristics::manhattan_h;
 use std::cmp::{Ord, Ordering, PartialOrd, Reverse};
 use std::collections::BinaryHeap;
 use std::io::{self, Write};
@@ -40,53 +42,22 @@ impl Ord for Node {
    }
 }
 
-pub fn null_h(_: usize, _: usize, _: usize) -> usize {
-   0
-}
-
-/// Calculate |x - y| while avoiding underflow
-fn abs_diff(x: usize, y: usize) -> usize {
-   if x > y {
-      x - y
-   } else {
-      y - x
-   }
-}
-
-pub fn manhattan_h(i: usize, goal: usize, width: usize) -> usize {
-   let i_row = i / width;
-   let i_col = i % width;
-
-   let goal_row = goal / width;
-   let goal_col = goal % width;
-
-   abs_diff(i_col, goal_col) + abs_diff(i_row, goal_row)
-}
-
-pub const DIAG_UNEXPLORED: u8 = 0x00;
-pub const DIAG_GENERATED: u8 = 0x01;
-pub const DIAG_EXPANDED: u8 = 0x03;
-
-#[derive(Copy, Clone, PartialEq)]
-#[repr(transparent)]
-pub struct DiagStatus(pub u8);
-
 pub struct PathData {
    pub path: Box<[usize]>,
-   pub diag: Box<[DiagStatus]>,
+   pub diag: FinalizedDiagMap,
    pub nodes_generated: u64,
    pub nodes_expanded: u64,
 }
 
-pub fn write_diag_to_svg<W: Write>(diag: &[DiagStatus], width: usize, dest: &mut W) -> io::Result<()> {
-   for (i, x) in diag.iter().enumerate() {
+pub fn write_diag_to_svg<W: Write>(diag: &DiagMap, width: usize, dest: &mut W) -> io::Result<()> {
+   for (i, x) in diag.inner.iter().enumerate() {
       let row = i / width;
       let col = i % width;
 
       let upper_left_y = row * 3;
       let upper_left_x = col * 3;
 
-      match x.0 {
+      match *x {
          DIAG_UNEXPLORED => {}
          DIAG_GENERATED => {
             writeln!(
@@ -130,7 +101,7 @@ where
 {
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
-   let mut diag_map = vec![DiagStatus(DIAG_UNEXPLORED); grid.size()].into_boxed_slice();
+   let mut diag_map = DiagMap::new(grid.size());
    let mut open: BinaryHeap<Reverse<PriorityNode>> = BinaryHeap::new();
    open.push(Reverse(PriorityNode {
       priority: h(start, goal, grid.width),
@@ -150,7 +121,7 @@ where
          final_path.push(goal);
          return Some(PathData {
             path: final_path.into_boxed_slice(),
-            diag: diag_map,
+            diag: diag_map.into(),
             nodes_generated,
             nodes_expanded,
          });
@@ -172,7 +143,7 @@ where
                path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
-            diag_map[i_north].0 |= DIAG_GENERATED;
+            diag_map.mark_generated(i_north);
          }
          // S
          if grid[cur_node.i].south_connected {
@@ -186,7 +157,7 @@ where
                path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
-            diag_map[i_south].0 |= DIAG_GENERATED;
+            diag_map.mark_generated(i_south);
          }
          // E
          if grid[cur_node.i].east_connected {
@@ -200,7 +171,7 @@ where
                path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
-            diag_map[i_east].0 |= DIAG_GENERATED;
+            diag_map.mark_generated(i_east);
          }
          // W
          if grid[cur_node.i].west_connected {
@@ -214,11 +185,11 @@ where
                path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
-            diag_map[i_west].0 |= DIAG_GENERATED;
+            diag_map.mark_generated(i_west);
          }
       }
       nodes_expanded += 1;
-      diag_map[cur_node.i].0 = DIAG_EXPANDED;
+      diag_map.mark_expanded(cur_node.i);
       closed[cur_node.i] = cur_node.path.len();
    }
    None
@@ -227,7 +198,7 @@ where
 pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
-   let mut diag_map = vec![DiagStatus(DIAG_UNEXPLORED); grid.size()].into_boxed_slice();
+   let mut diag_map = DiagMap::new(grid.size());
    let mut stack: Vec<Node> = vec![Node {
       i: start,
       path: vec![].into_boxed_slice(),
@@ -239,7 +210,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
          final_path.push(goal);
          return Some(PathData {
             path: final_path.into_boxed_slice(),
-            diag: diag_map,
+            diag: diag_map.into(),
             nodes_generated,
             nodes_expanded,
          });
@@ -254,7 +225,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
          let i_east = cur_node.i + 1;
          let i_west = cur_node.i - 1;
          // N
-         if grid[cur_node.i].north_connected && diag_map[i_north].0 == DIAG_UNEXPLORED {
+         if grid[cur_node.i].north_connected && diag_map[i_north] == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -263,10 +234,10 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                path: new_path.into_boxed_slice(),
             });
             nodes_generated += 1;
-            diag_map[i_north].0 |= DIAG_GENERATED;
+            diag_map.mark_generated(i_north);
          }
          // S
-         if grid[cur_node.i].south_connected && diag_map[i_south].0 == DIAG_UNEXPLORED {
+         if grid[cur_node.i].south_connected && diag_map[i_south] == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -275,10 +246,10 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                path: new_path.into_boxed_slice(),
             });
             nodes_generated += 1;
-            diag_map[i_south].0 |= DIAG_GENERATED;
+            diag_map.mark_generated(i_south);
          }
          // E
-         if grid[cur_node.i].east_connected && diag_map[i_east].0 == DIAG_UNEXPLORED {
+         if grid[cur_node.i].east_connected && diag_map[i_east] == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -287,10 +258,10 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                path: new_path.into_boxed_slice(),
             });
             nodes_generated += 1;
-            diag_map[i_east].0 |= DIAG_GENERATED;
+            diag_map.mark_generated(i_east);
          }
          // W
-         if grid[cur_node.i].west_connected && diag_map[i_west].0 == DIAG_UNEXPLORED {
+         if grid[cur_node.i].west_connected && diag_map[i_west] == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -299,11 +270,11 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                path: new_path.into_boxed_slice(),
             });
             nodes_generated += 1;
-            diag_map[i_west].0 |= DIAG_GENERATED;
+            diag_map.mark_generated(i_west);
          }
       }
       nodes_expanded += 1;
-      diag_map[cur_node.i].0 = DIAG_EXPANDED;
+      diag_map.mark_expanded(cur_node.i);
       let new_stack_len = stack.len();
       let newly_added_elems = &mut stack[stack_size_before_expansion..new_stack_len];
       newly_added_elems.sort_unstable_by(|a, b| {

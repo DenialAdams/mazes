@@ -1,5 +1,6 @@
 use maze_lib::grid::Grid;
 use maze_lib::{mazegen, pathfinding};
+use maze_lib::pathfinding::diagnostic_map::FinalizedDiagMap;
 use rand::{FromEntropy, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::io::Write;
@@ -24,28 +25,35 @@ pub fn app_init() {
 
 const DIAG_PATH: u8 = 0x07;
 
+pub struct FinalizedDiagMapWasm {
+   pub inner: Box<[u8]>,
+   pub generated_history: Box<[u32]>,
+   pub expanded_history: Box<[u32]>,
+   pub num_generated_history: Box<[u32]>,
+}
+
 #[wasm_bindgen]
 pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
    let app = unsafe { MAZE_APP.as_ref().unwrap() };
-   let path_data = match pathfind_algo {
-      "UniformCostSearch" => pathfinding::a_star(&app.grid, pathfinding::null_h, start, goal, false),
-      "AStar" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, false),
-      "GreedyBestFirst" => pathfinding::a_star(&app.grid, pathfinding::manhattan_h, start, goal, true),
-      "DepthFirstSearch" => pathfinding::dfs(&app.grid, start, goal),
+   let pf_data = match pathfind_algo {
+      "UniformCostSearch" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::null_h, start, goal, false),
+      "AStar" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::manhattan_h, start, goal, false),
+      "GreedyBestFirst" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::manhattan_h, start, goal, true),
+      "DepthFirstSearch" => pathfinding::algos::dfs(&app.grid, start, goal),
       _ => panic!("Got a bad pathfinding algo from JS"),
    }
    .unwrap();
-   let mut diag = unsafe { std::mem::transmute::<_, Box<[u8]>>(path_data.diag) };
-   for i in path_data.path.iter() {
-      diag[*i] = DIAG_PATH;
+   let mut pf_data_diag = unsafe { std::mem::transmute::<FinalizedDiagMap, FinalizedDiagMapWasm>(pf_data.diag) };
+   for i in pf_data.path.iter() {
+      pf_data_diag.inner[*i] = DIAG_PATH;
    }
-   diag
+   pf_data_diag.inner
 }
 
 #[wasm_bindgen]
 pub fn djikstra(start: usize) -> Box<[u32]> {
    let app = unsafe { MAZE_APP.as_ref().unwrap() };
-   let best_paths = pathfinding::djikstra(&app.grid, start);
+   let best_paths = pathfinding::algos::djikstra(&app.grid, start);
    let longest_path = *best_paths.iter().max().unwrap();
    let mut rgb_data = vec![0u32; best_paths.len()].into_boxed_slice();
    for (rgb, path_len) in rgb_data.iter_mut().zip(best_paths.iter()) {
