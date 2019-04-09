@@ -68,6 +68,8 @@ function maybePathfind() {
    }
    let anim_delay = document.getElementById('anim-delay').valueAsNumber;
    let pf_data = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
+   document.getElementById('nodes-generated').innerHTML = pf_data.nodes_generated;
+   document.getElementById('nodes-expanded').innerHTML = pf_data.nodes_expanded;
    if (anim_delay > 0) {
       let diag = pf_data.diag();
       let path = pf_data.path();
