@@ -71,6 +71,7 @@ fn main() {
       //println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
       println!("{} dead-ends", grid.dead_ends().count());
    }
+   maze_lib::pathfinding::algos::dfs(&grid, 0, 25);
    // write the maze clean
    {
       let mut dest = init_svg("maze", &grid).unwrap();

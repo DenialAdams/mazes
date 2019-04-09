@@ -219,11 +219,13 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
       // Expand
       let stack_size_before_expansion = stack.len();
       {
+         // wrapping sub is ok because we only use
+         // i.e. i_north when we know it is north connected
          let new_path_len = cur_node.path.len() + 1;
-         let i_north = cur_node.i - grid.width;
+         let i_north = cur_node.i.wrapping_sub(grid.width);
          let i_south = cur_node.i + grid.width;
          let i_east = cur_node.i + 1;
-         let i_west = cur_node.i - 1;
+         let i_west = cur_node.i.wrapping_sub(1);
          // N
          if grid[cur_node.i].north_connected && diag_map[i_north] == DIAG_UNEXPLORED {
             let mut new_path = Vec::with_capacity(new_path_len);
