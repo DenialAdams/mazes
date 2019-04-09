@@ -25,15 +25,35 @@ pub fn app_init() {
 
 const DIAG_PATH: u8 = 0x07;
 
+#[wasm_bindgen]
 pub struct FinalizedDiagMapWasm {
-   pub inner: Box<[u8]>,
-   pub generated_history: Box<[u32]>,
-   pub expanded_history: Box<[u32]>,
-   pub num_generated_history: Box<[u32]>,
+   inner: Box<[u8]>,
+   generated_history: Box<[u32]>,
+   expanded_history: Box<[u32]>,
+   num_generated_history: Box<[u8]>,
 }
 
 #[wasm_bindgen]
-pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
+impl FinalizedDiagMapWasm {
+   pub fn inner(&self) -> Box<[u8]> {
+      self.inner.clone()
+   }
+
+   pub fn generated_history(&self) -> Box<[u32]> {
+      self.generated_history.clone()
+   }
+
+   pub fn expanded_history(&self) -> Box<[u32]> {
+      self.expanded_history.clone()
+   }
+
+   pub fn num_generated_history(&self) -> Box<[u8]> {
+      self.num_generated_history.clone()
+   }
+}
+
+#[wasm_bindgen]
+pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> FinalizedDiagMapWasm {
    let app = unsafe { MAZE_APP.as_ref().unwrap() };
    let pf_data = match pathfind_algo {
       "UniformCostSearch" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::null_h, start, goal, false),
@@ -43,11 +63,11 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> Box<[u8]> {
       _ => panic!("Got a bad pathfinding algo from JS"),
    }
    .unwrap();
-   let mut pf_data_diag = unsafe { std::mem::transmute::<FinalizedDiagMap, FinalizedDiagMapWasm>(pf_data.diag) };
+   let mut diag_wasm: FinalizedDiagMapWasm = unsafe { std::mem::transmute(pf_data.diag) };
    for i in pf_data.path.iter() {
-      pf_data_diag.inner[*i] = DIAG_PATH;
+      diag_wasm.inner[*i] = DIAG_PATH;
    }
-   pf_data_diag.inner
+   diag_wasm
 }
 
 #[wasm_bindgen]

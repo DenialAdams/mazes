@@ -18,7 +18,7 @@ pub struct DiagMap {
    pub inner: Box<[DiagStatus]>,
    generated_history: Vec<usize>,
    expanded_history: Vec<usize>,
-   num_generated_history: Vec<usize>,
+   num_generated_history: Vec<u8>,
    last_generated_len: usize,
 }
 
@@ -46,7 +46,7 @@ impl DiagMap {
    pub fn mark_expanded(&mut self, index: usize) {
       self.inner[index] |= DIAG_EXPANDED;
       self.expanded_history.push(index);
-      self.num_generated_history.push(self.generated_history.len() - self.last_generated_len);
+      self.num_generated_history.push((self.generated_history.len() - self.last_generated_len) as u8);
       self.last_generated_len = self.generated_history.len();
    }
 
@@ -60,7 +60,7 @@ pub struct FinalizedDiagMap {
    pub inner: Box<[DiagStatus]>,
    pub generated_history: Box<[usize]>,
    pub expanded_history: Box<[usize]>,
-   pub num_generated_history: Box<[usize]>,
+   pub num_generated_history: Box<[u8]>,
 }
 
 impl From<DiagMap> for FinalizedDiagMap {
