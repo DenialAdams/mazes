@@ -25,10 +25,7 @@ function cleanupPathData() {
    }
 }
 
-function advanceAnim(pf_expanded_history, pf_generated_history, pf_num_generated_history) {
-   if (animExpandedIndex == pf_expanded_history.length) {
-      window.clearInterval(animId);
-   }
+function advanceAnim(pf_expanded_history, pf_generated_history, pf_num_generated_history, path) {
    let expanded_node = pf_expanded_history[animExpandedIndex];
    let num_nodes_generated = pf_num_generated_history[animExpandedIndex];
    document.getElementById(expanded_node).setAttribute('class', 'cell expanded');
@@ -36,12 +33,15 @@ function advanceAnim(pf_expanded_history, pf_generated_history, pf_num_generated
       document.getElementById(pf_generated_history[animGeneratedIndex]).setAttribute('class', 'cell generated');
       animGeneratedIndex += 1;
    }
-   document.getElementById(startNode).setAttribute('class', 'cell selected');
-   document.getElementById(endNode).setAttribute('class', 'cell selected');
    animExpandedIndex += 1;
    if (animExpandedIndex == pf_expanded_history.length) {
+      for (let i = 0; i < path.length; i++) {
+         document.getElementById(path[i]).setAttribute('class', 'cell path');
+      }
       window.clearInterval(animId);
    }
+   document.getElementById(startNode).setAttribute('class', 'cell selected');
+   document.getElementById(endNode).setAttribute('class', 'cell selected');
 }
 
 function maybePathfind() {
@@ -69,14 +69,16 @@ function maybePathfind() {
    let anim_delay = document.getElementById('anim-delay').valueAsNumber;
    let pf_data = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
    if (anim_delay > 0) {
-      let pf_expanded_history = pf_data.expanded_history();
-      let pf_generated_history = pf_data.generated_history();
-      let pf_num_generated_history = pf_data.num_generated_history();
+      let diag = pf_data.diag();
+      let path = pf_data.path();
+      let pf_expanded_history = diag.expanded_history();
+      let pf_generated_history = diag.generated_history();
+      let pf_num_generated_history = diag.num_generated_history();
       animExpandedIndex = 0;
       animGeneratedIndex = 0;
-      animId = window.setInterval(advanceAnim, anim_delay, pf_expanded_history, pf_generated_history, pf_num_generated_history);
+      animId = window.setInterval(advanceAnim, anim_delay, pf_expanded_history, pf_generated_history, pf_num_generated_history, path);
    } else {
-      let pf_nodes = pf_data.inner();
+      let pf_nodes = pf_data.diag().inner();
       for (let i = 0; i < pf_nodes.length; i++) {
          if (pf_nodes[i] == 0x01) {
             document.getElementById(i).setAttribute('class', 'cell generated');

@@ -26,6 +26,26 @@ pub fn app_init() {
 const DIAG_PATH: u8 = 0x07;
 
 #[wasm_bindgen]
+pub struct PfDataWasm {
+   path: Box<[u32]>,
+   diag: FinalizedDiagMapWasm,
+   pub nodes_generated: usize,
+   pub nodes_expanded: usize,
+}
+
+#[wasm_bindgen]
+impl PfDataWasm {
+   pub fn path(&self) -> Box<[u32]> {
+      self.path.clone()
+   }
+
+   pub fn diag(&self) -> FinalizedDiagMapWasm {
+      self.diag.clone()
+   }
+}
+
+#[wasm_bindgen]
+#[derive(Clone)]
 pub struct FinalizedDiagMapWasm {
    inner: Box<[u8]>,
    generated_history: Box<[u32]>,
@@ -53,7 +73,7 @@ impl FinalizedDiagMapWasm {
 }
 
 #[wasm_bindgen]
-pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> FinalizedDiagMapWasm {
+pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> PfDataWasm {
    let app = unsafe { MAZE_APP.as_ref().unwrap() };
    let pf_data = match pathfind_algo {
       "UniformCostSearch" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::null_h, start, goal, false),
@@ -63,11 +83,12 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> FinalizedDiag
       _ => panic!("Got a bad pathfinding algo from JS"),
    }
    .unwrap();
-   let mut diag_wasm: FinalizedDiagMapWasm = unsafe { std::mem::transmute(pf_data.diag) };
-   for i in pf_data.path.iter() {
-      diag_wasm.inner[*i] = DIAG_PATH;
+   let mut pf_data_wasm: PfDataWasm = unsafe { std::mem::transmute(pf_data) };
+   for i in pf_data_wasm.path.iter() {
+      let i = *i as usize;
+      pf_data_wasm.diag.inner[i] = DIAG_PATH;
    }
-   diag_wasm
+   pf_data_wasm
 }
 
 #[wasm_bindgen]

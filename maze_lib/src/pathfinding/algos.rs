@@ -45,8 +45,8 @@ impl Ord for Node {
 pub struct PathData {
    pub path: Box<[usize]>,
    pub diag: FinalizedDiagMap,
-   pub nodes_generated: u64,
-   pub nodes_expanded: u64,
+   pub nodes_generated: usize,
+   pub nodes_expanded: usize,
 }
 
 pub fn write_diag_to_svg<W: Write>(diag: &DiagMap, width: usize, dest: &mut W) -> io::Result<()> {
@@ -110,12 +110,6 @@ where
    }));
    let mut closed: Box<[usize]> = vec![std::usize::MAX; grid.size()].into_boxed_slice();
    while let Some(Reverse(cur_node)) = open.pop() {
-      // if we've already reached this state in fewer actions (or the same number of actions),
-      // we can not possibly do better
-      if closed[cur_node.i] <= cur_node.path.len() {
-         continue;
-      }
-
       if cur_node.i == goal {
          let mut final_path = cur_node.path.to_vec();
          final_path.push(goal);
@@ -129,10 +123,16 @@ where
 
       // Expand
       {
+         // wrapping sub is ok because we only use
+         // i.e. i_north when we know it is north connected
          let new_path_len = cur_node.path.len() + 1;
+         let i_north = cur_node.i.wrapping_sub(grid.width);
+         let i_south = cur_node.i + grid.width;
+         let i_east = cur_node.i + 1;
+         let i_west = cur_node.i.wrapping_sub(1);
          let g = new_path_len * !greedy as usize;
          // N
-         if grid[cur_node.i].north_connected {
+         if grid[cur_node.i].north_connected && closed[i_north] > new_path_len {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -146,7 +146,7 @@ where
             diag_map.mark_generated(i_north);
          }
          // S
-         if grid[cur_node.i].south_connected {
+         if grid[cur_node.i].south_connected && closed[i_south] > new_path_len {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -160,7 +160,7 @@ where
             diag_map.mark_generated(i_south);
          }
          // E
-         if grid[cur_node.i].east_connected {
+         if grid[cur_node.i].east_connected && closed[i_east] > new_path_len {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
@@ -174,7 +174,7 @@ where
             diag_map.mark_generated(i_east);
          }
          // W
-         if grid[cur_node.i].west_connected {
+         if grid[cur_node.i].west_connected && closed[i_west] > new_path_len {
             let mut new_path = Vec::with_capacity(new_path_len);
             new_path.extend_from_slice(&cur_node.path);
             new_path.push(cur_node.i);
