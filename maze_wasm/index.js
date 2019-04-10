@@ -5,12 +5,21 @@ let startNode = null;
 let endNode = null;
 let curGridWidth = 0;
 let curGridHeight = 0;
-let animExpandedIndex = 0;
-let animGeneratedIndex = 0;
-let animId = null;
+let animState = {
+   expandedIndex: 0,
+   generatedIndex: 0,
+   delay: 0,
+   acc: 0,
+   id: null,
+   path: null,
+   expandedHistory: null,
+   generatedHistory: null,
+   numGeneratedHistory: null,
+   lastTimestamp: null,
+};
 
 function cleanupPathData() {
-   window.clearInterval(animId);
+   window.cancelAnimationFrame(animState.id);
    let cells = document.getElementsByClassName('cell');
    for (let i = 0; i < cells.length; i++) {
       cells[i].setAttribute('class', 'cell');
@@ -25,23 +34,34 @@ function cleanupPathData() {
    }
 }
 
-function advanceAnim(pf_expanded_history, pf_generated_history, pf_num_generated_history, path) {
-   let expanded_node = pf_expanded_history[animExpandedIndex];
-   let num_nodes_generated = pf_num_generated_history[animExpandedIndex];
-   document.getElementById(expanded_node).setAttribute('class', 'cell expanded');
-   for (let i = 0; i < num_nodes_generated; i++) {
-      document.getElementById(pf_generated_history[animGeneratedIndex]).setAttribute('class', 'cell generated');
-      animGeneratedIndex += 1;
-   }
-   animExpandedIndex += 1;
-   if (animExpandedIndex == pf_expanded_history.length) {
-      for (let i = 0; i < path.length; i++) {
-         document.getElementById(path[i]).setAttribute('class', 'cell path');
+function advanceAnim(timestamp) {
+   let now = performance.now();
+   animState.acc += now - animState.lastTimestamp;
+   animState.lastTimestamp = now;
+   while (animState.acc >= animState.delay) {
+      if (animState.expandedIndex >= animState.expandedHistory.length) {
+         for (let i = 0; i < animState.path.length; i++) {
+            document.getElementById(animState.path[i]).setAttribute('class', 'cell path');
+         }
+         document.getElementById(startNode).setAttribute('class', 'cell selected');
+         document.getElementById(endNode).setAttribute('class', 'cell selected');
+         return;
       }
-      window.clearInterval(animId);
+
+      let expanded_node = animState.expandedHistory[animState.expandedIndex];
+      let num_nodes_generated = animState.numGeneratedHistory[animState.expandedIndex];
+      document.getElementById(expanded_node).setAttribute('class', 'cell expanded');
+      for (let i = 0; i < num_nodes_generated; i++) {
+         document.getElementById(animState.generatedHistory[animState.generatedIndex]).setAttribute('class', 'cell generated');
+         animState.generatedIndex += 1;
+      }
+      animState.expandedIndex += 1;
+
+      animState.acc -= animState.delay;
    }
    document.getElementById(startNode).setAttribute('class', 'cell selected');
    document.getElementById(endNode).setAttribute('class', 'cell selected');
+   animState.id = window.requestAnimationFrame(advanceAnim);
 }
 
 function maybePathfind() {
@@ -66,19 +86,22 @@ function maybePathfind() {
       document.getElementById(startNode).style.setProperty('stroke', '');
       return;  
    }
-   let anim_delay = document.getElementById('anim-delay').valueAsNumber;
+   let delay = document.getElementById('anim-delay').valueAsNumber;
    let pf_data = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
    document.getElementById('nodes-generated').innerHTML = pf_data.nodes_generated;
    document.getElementById('nodes-expanded').innerHTML = pf_data.nodes_expanded;
-   if (anim_delay > 0) {
+   if (delay > 0) {
       let diag = pf_data.diag();
-      let path = pf_data.path();
-      let pf_expanded_history = diag.expanded_history();
-      let pf_generated_history = diag.generated_history();
-      let pf_num_generated_history = diag.num_generated_history();
-      animExpandedIndex = 0;
-      animGeneratedIndex = 0;
-      animId = window.setInterval(advanceAnim, anim_delay, pf_expanded_history, pf_generated_history, pf_num_generated_history, path);
+      animState.path = pf_data.path();
+      animState.expandedHistory = diag.expanded_history();
+      animState.generatedHistory = diag.generated_history();
+      animState.numGeneratedHistory = diag.num_generated_history();
+      animState.expandedIndex = 0;
+      animState.generatedIndex = 0;
+      animState.delay = delay;
+      animState.acc = 0;
+      animState.lastTimestamp = performance.now();
+      animState.id = window.requestAnimationFrame(advanceAnim);
    } else {
       let pf_nodes = pf_data.diag().inner();
       for (let i = 0; i < pf_nodes.length; i++) {
