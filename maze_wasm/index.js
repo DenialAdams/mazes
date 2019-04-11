@@ -17,6 +17,7 @@ let animState = {
    numGeneratedHistory: null,
    lastTimestamp: null,
 };
+let cached_pf_data = null;
 
 function cleanupPathData() {
    window.cancelAnimationFrame(animState.id);
@@ -64,32 +65,8 @@ function advanceAnim(timestamp) {
    animState.id = window.requestAnimationFrame(advanceAnim);
 }
 
-function maybePathfind() {
-   if (startNode == null || endNode == null || !initWasm) {
-      return;
-   }
-   let pf_algo_ele = document.getElementById("pathfinding-algo");
-   let pf_algo = pf_algo_ele.options[pf_algo_ele.selectedIndex].value;
-   if (pf_algo == "None") {
-      return;
-   }
-   cleanupPathData();
-   if (startNode == endNode) {
-      // special, do djikstra gradient visualization
-      let cell_colors = djikstra(startNode);
-      for (let i = 0; i < cell_colors.length; i++) {
-         let ele = document.getElementById(i);
-         ele.style.setProperty('fill', '#' + cell_colors[i].toString(16).padStart(6, '0'));
-         ele.style.setProperty('stroke', '#' + cell_colors[i].toString(16).padStart(6, '0'));
-      }
-      document.getElementById(startNode).style.setProperty('fill', '');
-      document.getElementById(startNode).style.setProperty('stroke', '');
-      return;  
-   }
+function animateOrPaint(pf_data) {
    let delay = document.getElementById('anim-delay').valueAsNumber;
-   let pf_data = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
-   document.getElementById('nodes-generated').innerHTML = pf_data.nodes_generated;
-   document.getElementById('nodes-expanded').innerHTML = pf_data.nodes_expanded;
    if (delay > 0) {
       let diag = pf_data.diag();
       animState.path = pf_data.path();
@@ -118,15 +95,53 @@ function maybePathfind() {
    }
 }
 
+function maybePathfind() {
+   if (startNode == null || endNode == null || !initWasm) {
+      return;
+   }
+   let pf_algo_ele = document.getElementById("pathfinding-algo");
+   let pf_algo = pf_algo_ele.options[pf_algo_ele.selectedIndex].value;
+   if (pf_algo == "None") {
+      return;
+   }
+   cleanupPathData();
+   cached_pf_data = null;
+   if (startNode == endNode) {
+      // special, do djikstra gradient visualization
+      let cell_colors = djikstra(startNode);
+      for (let i = 0; i < cell_colors.length; i++) {
+         let ele = document.getElementById(i);
+         ele.style.setProperty('fill', '#' + cell_colors[i].toString(16).padStart(6, '0'));
+         ele.style.setProperty('stroke', '#' + cell_colors[i].toString(16).padStart(6, '0'));
+      }
+      document.getElementById(startNode).style.setProperty('fill', '');
+      document.getElementById(startNode).style.setProperty('stroke', '');
+      return;
+   }
+   cached_pf_data = pathfind(parseInt(startNode), parseInt(endNode), pf_algo);
+   document.getElementById('nodes-generated').innerHTML = cached_pf_data.nodes_generated;
+   document.getElementById('nodes-expanded').innerHTML = cached_pf_data.nodes_expanded;
+   animateOrPaint(cached_pf_data);
+}
+
 window.pathfindChange = function pathfindChange(event) {
    let pf_algo_ele = document.getElementById("pathfinding-algo");
    let pf_algo = pf_algo_ele.options[pf_algo_ele.selectedIndex].value;
    if (pf_algo == "None") {
       cleanupPathData();
+      cached_pf_data = null;
    } else {
       maybePathfind();
    }
 };
+
+window.animDelayChange = function animDelayChange(event) {
+   cleanupPathData();
+   if (cached_pf_data == null) {
+      return;
+   }
+   animateOrPaint(cached_pf_data);
+}
 
 window.onCellClick = function onCellClick(event) {
    if (startNode != null) {
