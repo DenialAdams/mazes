@@ -1,3 +1,4 @@
+use crate::disjoint_set::DisjointSet;
 use crate::grid::Grid;
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::Rng;
@@ -11,6 +12,7 @@ pub enum Algo {
    Wilson,
    HuntAndKill,
    RecursiveBacktracker,
+   Kruskal,
 }
 
 impl fmt::Display for Algo {
@@ -25,18 +27,20 @@ impl fmt::Display for Algo {
             Algo::Wilson => "Wilsons's",
             Algo::HuntAndKill => "Hunt and Kill",
             Algo::RecursiveBacktracker => "Recursive Backtracker",
+            Algo::Kruskal => "Kruskal's"
          }
       )
    }
 }
 
-pub const ALGOS: [Algo; 6] = [
+pub const ALGOS: [Algo; 7] = [
    Algo::BinaryTree,
    Algo::Sidewinder,
    Algo::AldousBroder,
    Algo::Wilson,
    Algo::HuntAndKill,
    Algo::RecursiveBacktracker,
+   Algo::Kruskal,
 ];
 
 pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
@@ -47,6 +51,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
       Algo::Wilson => wilson(grid, rng),
       Algo::HuntAndKill => hunt_and_kill(grid, rng),
       Algo::RecursiveBacktracker => recursive_backtracker(grid, rng),
+      Algo::Kruskal => kruskal(grid, rng),
    }
 }
 
@@ -191,5 +196,26 @@ pub fn recursive_backtracker<R: Rng>(grid: &mut Grid, rng: &mut R) {
          stack.push(target);
          visited[target] = true;
       }
+   }
+}
+
+pub fn kruskal<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   let mut disjoint_set = DisjointSet::new(grid.size());
+   let mut edges = Vec::with_capacity(grid.size() * 2);
+   for i in 0..grid.size() {
+      if grid.has_neighbor_south(i) {
+         edges.push((i, i + grid.width))
+      }
+      if grid.has_neighbor_east(i) {
+         edges.push((i, i + 1))
+      }
+   }
+   edges.shuffle(rng);
+   for edge in edges {
+      if disjoint_set.find(edge.0) == disjoint_set.find(edge.1) {
+         continue;
+      }
+      disjoint_set.union(edge.0, edge.1);
+      grid.connect_neighbors(edge.0, edge.1);
    }
 }

@@ -141,7 +141,7 @@ window.animDelayChange = function animDelayChange(event) {
       return;
    }
    animateOrPaint(cached_pf_data);
-}
+};
 
 window.onCellClick = function onCellClick(event) {
    if (startNode != null) {

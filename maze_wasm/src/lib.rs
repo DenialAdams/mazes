@@ -134,6 +134,7 @@ pub fn carve_maze(mazegen_algo: &str, seed_string: String) -> String {
       "Wilson" => mazegen::Algo::Wilson,
       "HuntAndKill" => mazegen::Algo::HuntAndKill,
       "RecursiveBacktracker" => mazegen::Algo::RecursiveBacktracker,
+      "Kruskal" => mazegen::Algo::Kruskal,
       _ => panic!("Got a bad mazegen algo from JS"),
    };
    let mut result = Vec::new();
