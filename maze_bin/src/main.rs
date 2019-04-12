@@ -82,7 +82,7 @@ fn main() {
    }
    let start_time = Instant::now();
    maze_lib::pathfinding::algos::a_star(&grid, maze_lib::pathfinding::heuristics::manhattan_h, 0, grid.size() - 1, false);
-   println!("pathfinding elapsed: {}", start_time.elapsed().as_float_secs());
+   println!("pathfinding elapsed: {}", start_time.elapsed().as_secs_f64());
    /*
    // write the maze clean
    {
