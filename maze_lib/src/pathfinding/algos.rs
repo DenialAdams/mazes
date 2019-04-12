@@ -4,13 +4,12 @@ use super::heuristics::manhattan_h;
 use std::cmp::{Ord, Ordering, PartialOrd, Reverse};
 use std::collections::BinaryHeap;
 use std::io::{self, Write};
-use std::rc::Rc;
 
 #[derive(Clone, PartialEq, Eq)]
 struct PriorityNode {
    priority: usize,
    i: usize,
-   path: Rc<[usize]>,
+   path: Box<[usize]>,
 }
 
 impl PartialOrd for PriorityNode {
@@ -107,7 +106,7 @@ where
    open.push(Reverse(PriorityNode {
       priority: h(start, goal, grid.width),
       i: start,
-      path: Rc::new([]),
+      path: vec![].into_boxed_slice(),
    }));
    let mut closed: Box<[usize]> = vec![std::usize::MAX; grid.size()].into_boxed_slice();
    while let Some(Reverse(cur_node)) = open.pop() {
@@ -124,13 +123,9 @@ where
 
       // Expand
       {
-         let new_path_len = cur_node.path.len() + 1;
-         let mut new_path = Vec::with_capacity(new_path_len);
-         new_path.extend_from_slice(&cur_node.path);
-         new_path.push(cur_node.i);
-         let new_path: Rc<[usize]> = new_path.into();
          // wrapping sub is ok because we only use
          // i.e. i_north when we know it is north connected
+         let new_path_len = cur_node.path.len() + 1;
          let i_north = cur_node.i.wrapping_sub(grid.width);
          let i_south = cur_node.i + grid.width;
          let i_east = cur_node.i + 1;
@@ -138,44 +133,56 @@ where
          let g = new_path_len * !greedy as usize;
          // N
          if grid[cur_node.i].north_connected && closed[i_north] > new_path_len {
+            let mut new_path = Vec::with_capacity(new_path_len);
+            new_path.extend_from_slice(&cur_node.path);
+            new_path.push(cur_node.i);
             let i_north = cur_node.i - grid.width;
             open.push(Reverse(PriorityNode {
                priority: g + h(i_north, goal, grid.width),
                i: i_north,
-               path: Rc::clone(&new_path),
+               path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
             diag_map.mark_generated(i_north);
          }
          // S
          if grid[cur_node.i].south_connected && closed[i_south] > new_path_len {
+            let mut new_path = Vec::with_capacity(new_path_len);
+            new_path.extend_from_slice(&cur_node.path);
+            new_path.push(cur_node.i);
             let i_south = cur_node.i + grid.width;
             open.push(Reverse(PriorityNode {
                priority: g + h(i_south, goal, grid.width),
                i: i_south,
-               path: Rc::clone(&new_path),
+               path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
             diag_map.mark_generated(i_south);
          }
          // E
          if grid[cur_node.i].east_connected && closed[i_east] > new_path_len {
+            let mut new_path = Vec::with_capacity(new_path_len);
+            new_path.extend_from_slice(&cur_node.path);
+            new_path.push(cur_node.i);
             let i_east = cur_node.i + 1;
             open.push(Reverse(PriorityNode {
                priority: g + h(i_east, goal, grid.width),
                i: i_east,
-               path: Rc::clone(&new_path),
+               path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
             diag_map.mark_generated(i_east);
          }
          // W
          if grid[cur_node.i].west_connected && closed[i_west] > new_path_len {
+            let mut new_path = Vec::with_capacity(new_path_len);
+            new_path.extend_from_slice(&cur_node.path);
+            new_path.push(cur_node.i);
             let i_west = cur_node.i - 1;
             open.push(Reverse(PriorityNode {
                priority: g + h(i_west, goal, grid.width),
                i: i_west,
-               path: new_path,
+               path: new_path.into_boxed_slice(),
             }));
             nodes_generated += 1;
             diag_map.mark_generated(i_west);
