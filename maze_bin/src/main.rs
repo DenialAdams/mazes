@@ -83,7 +83,8 @@ fn main() {
       println!("{} dead-ends", grid.dead_ends().count());
    }
    let start_time = Instant::now();
-   let pf_data = maze_lib::pathfinding::algos::a_star(&grid, maze_lib::pathfinding::heuristics::manhattan_h, 0, grid.size() - 1, false).unwrap();
+   //let pf_data = maze_lib::pathfinding::algos::a_star(&grid, maze_lib::pathfinding::heuristics::manhattan_h, 0, grid.size() - 1, false).unwrap();
+   let pf_data = maze_lib::pathfinding::algos::dfs(&grid, 0, grid.size() - 1).unwrap();
    println!("pathfinding elapsed: {}", start_time.elapsed().as_secs_f64());
    println!("for every 1 node we expanded, on average we generated {} nodes", pf_data.nodes_generated as f64 / pf_data.nodes_expanded as f64);
    /*

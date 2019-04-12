@@ -27,7 +27,7 @@ impl Ord for PriorityNode {
 #[derive(Clone, PartialEq, Eq)]
 struct Node {
    i: usize,
-   path: Box<[usize]>,
+   path: Vec<usize>,
 }
 
 impl PartialOrd for Node {
@@ -194,9 +194,10 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
    let mut diag_map = DiagMap::new(grid.size());
    let mut stack: Vec<Node> = vec![Node {
       i: start,
-      path: vec![].into_boxed_slice(),
+      path: vec![],
    }];
-   while let Some(cur_node) = stack.pop() {
+   let mut neighbors_to_generate = Vec::with_capacity(4);
+   while let Some(mut cur_node) = stack.pop() {
       if cur_node.i == goal {
          let mut final_path = Vec::with_capacity(cur_node.path.len() + 1);
          final_path.extend_from_slice(&cur_node.path);
@@ -212,60 +213,56 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
       // Expand
       let stack_size_before_expansion = stack.len();
       {
+         cur_node.path.reserve_exact(1);
+         cur_node.path.push(cur_node.i);
          // wrapping sub is ok because we only use
          // i.e. i_north when we know it is north connected
-         let new_path_len = cur_node.path.len() + 1;
          let i_north = cur_node.i.wrapping_sub(grid.width);
          let i_south = cur_node.i + grid.width;
          let i_east = cur_node.i + 1;
          let i_west = cur_node.i.wrapping_sub(1);
-         // N
-         if grid[cur_node.i].north_connected && diag_map[i_north] == DIAG_UNEXPLORED {
-            let mut new_path = Vec::with_capacity(new_path_len);
-            new_path.extend_from_slice(&cur_node.path);
-            new_path.push(cur_node.i);
-            stack.push(Node {
-               i: i_north,
-               path: new_path.into_boxed_slice(),
-            });
-            nodes_generated += 1;
-            diag_map.mark_generated(i_north);
+         neighbors_to_generate.clear();
+         // fill neighbors_to_generate with our neighbors
+         {
+            // N
+            if grid[cur_node.i].north_connected && diag_map[i_north] == DIAG_UNEXPLORED {
+               neighbors_to_generate.push(i_north);
+            }
+            // S
+            if grid[cur_node.i].south_connected && diag_map[i_south] == DIAG_UNEXPLORED {
+               neighbors_to_generate.push(i_south);
+            }
+            // E
+            if grid[cur_node.i].east_connected && diag_map[i_east] == DIAG_UNEXPLORED {
+               neighbors_to_generate.push(i_east);
+            }
+            // W
+            if grid[cur_node.i].west_connected && diag_map[i_west] == DIAG_UNEXPLORED {
+               neighbors_to_generate.push(i_west);
+            }
          }
-         // S
-         if grid[cur_node.i].south_connected && diag_map[i_south] == DIAG_UNEXPLORED {
-            let mut new_path = Vec::with_capacity(new_path_len);
-            new_path.extend_from_slice(&cur_node.path);
-            new_path.push(cur_node.i);
-            stack.push(Node {
-               i: i_south,
-               path: new_path.into_boxed_slice(),
+         // actually do expansion
+         {
+            // first, we generate every node other than the first neighbor
+            neighbors_to_generate.iter().skip(1).for_each(|i| {
+               stack.push(Node {
+                  i: *i,
+                  path: cur_node.path.clone(),
+               });
+               nodes_generated += 1;
+               diag_map.mark_generated(*i);
             });
-            nodes_generated += 1;
-            diag_map.mark_generated(i_south);
-         }
-         // E
-         if grid[cur_node.i].east_connected && diag_map[i_east] == DIAG_UNEXPLORED {
-            let mut new_path = Vec::with_capacity(new_path_len);
-            new_path.extend_from_slice(&cur_node.path);
-            new_path.push(cur_node.i);
-            stack.push(Node {
-               i: i_east,
-               path: new_path.into_boxed_slice(),
-            });
-            nodes_generated += 1;
-            diag_map.mark_generated(i_east);
-         }
-         // W
-         if grid[cur_node.i].west_connected && diag_map[i_west] == DIAG_UNEXPLORED {
-            let mut new_path = Vec::with_capacity(new_path_len);
-            new_path.extend_from_slice(&cur_node.path);
-            new_path.push(cur_node.i);
-            stack.push(Node {
-               i: i_west,
-               path: new_path.into_boxed_slice(),
-            });
-            nodes_generated += 1;
-            diag_map.mark_generated(i_west);
+            // now, we generate the first neighbor
+            // the vast vast majority of cells have only one neighbor
+            // in mazes, so avoiding a clone is a huge optimization
+            if let Some(i) = neighbors_to_generate.get(0) {
+               stack.push(Node {
+                  i: *i,
+                  path: cur_node.path,
+               });
+               nodes_generated += 1;
+               diag_map.mark_generated(*i);
+            }
          }
       }
       nodes_expanded += 1;
@@ -284,56 +281,65 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
 pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
    let mut best_paths = vec![std::usize::MAX; grid.size()].into_boxed_slice();
    let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
+   let mut neighbors_to_generate = Vec::with_capacity(4);
    open.push(Reverse(Node {
       i: start,
-      path: vec![].into_boxed_slice(),
+      path: vec![],
    }));
-   while let Some(Reverse(cur_node)) = open.pop() {
+   while let Some(Reverse(mut cur_node)) = open.pop() {
+      let cur_path_len = cur_node.path.len() + 1;
       // expand
       {
-         let new_path_len = cur_node.path.len() + 1;
-         // N
-         if grid[cur_node.i].north_connected && best_paths[cur_node.i - grid.width] > new_path_len {
-            let mut new_path = Vec::with_capacity(new_path_len);
-            new_path.extend_from_slice(&cur_node.path);
-            new_path.push(cur_node.i);
-            open.push(Reverse(Node {
-               i: cur_node.i - grid.width,
-               path: new_path.into_boxed_slice(),
-            }));
+         let new_path_len = cur_path_len + 1;
+         cur_node.path.reserve_exact(1);
+         cur_node.path.push(cur_node.i);
+         // wrapping sub is ok because we only use
+         // i.e. i_north when we know it is north connected
+         let i_north = cur_node.i.wrapping_sub(grid.width);
+         let i_south = cur_node.i + grid.width;
+         let i_east = cur_node.i + 1;
+         let i_west = cur_node.i.wrapping_sub(1);
+         neighbors_to_generate.clear();
+         // fill neighbors_to_generate with our neighbors
+         {
+            // N
+            if grid[cur_node.i].north_connected && best_paths[i_north] > new_path_len {
+               neighbors_to_generate.push(i_north);
+            }
+            // S
+            if grid[cur_node.i].south_connected && best_paths[i_south] > new_path_len {
+               neighbors_to_generate.push(i_south);
+            }
+            // E
+            if grid[cur_node.i].east_connected && best_paths[i_east] > new_path_len {
+               neighbors_to_generate.push(i_east);
+            }
+            // W
+            if grid[cur_node.i].west_connected && best_paths[i_west] > new_path_len {
+               neighbors_to_generate.push(i_west);
+            }
          }
-         // S
-         if grid[cur_node.i].south_connected && best_paths[cur_node.i + grid.width] > new_path_len {
-            let mut new_path = Vec::with_capacity(new_path_len);
-            new_path.extend_from_slice(&cur_node.path);
-            new_path.push(cur_node.i);
-            open.push(Reverse(Node {
-               i: cur_node.i + grid.width,
-               path: new_path.into_boxed_slice(),
-            }));
-         }
-         // E
-         if grid[cur_node.i].east_connected && best_paths[cur_node.i + 1] > new_path_len {
-            let mut new_path = Vec::with_capacity(new_path_len);
-            new_path.extend_from_slice(&cur_node.path);
-            new_path.push(cur_node.i);
-            open.push(Reverse(Node {
-               i: cur_node.i + 1,
-               path: new_path.into_boxed_slice(),
-            }));
-         }
-         // W
-         if grid[cur_node.i].west_connected && best_paths[cur_node.i - 1] > new_path_len {
-            let mut new_path = Vec::with_capacity(new_path_len);
-            new_path.extend_from_slice(&cur_node.path);
-            new_path.push(cur_node.i);
-            open.push(Reverse(Node {
-               i: cur_node.i - 1,
-               path: new_path.into_boxed_slice(),
-            }));
+         // actually do expansion
+         {
+            // first, we generate every node other than the first neighbor
+            neighbors_to_generate.iter().skip(1).for_each(|i| {
+               open.push(Reverse(Node {
+                  i: *i,
+                  path: cur_node.path.clone(),
+               }));
+            });
+            // now, we generate the first neighbor
+            // the vast vast majority of cells have only one neighbor
+            // in mazes, so avoiding a clone is a huge optimization
+            if let Some(i) = neighbors_to_generate.get(0) {
+               open.push(Reverse(Node {
+                  i: *i,
+                  path: cur_node.path,
+               }));
+            }
          }
       }
-      best_paths[cur_node.i] = cur_node.path.len();
+      best_paths[cur_node.i] = cur_path_len;
    }
    best_paths
 }
