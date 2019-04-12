@@ -1,6 +1,6 @@
-use crate::grid::Grid;
-use super::diagnostic_map::{DiagMap, FinalizedDiagMap, DIAG_UNEXPLORED, DIAG_GENERATED, DIAG_EXPANDED};
+use super::diagnostic_map::{DiagMap, FinalizedDiagMap, DIAG_EXPANDED, DIAG_GENERATED, DIAG_UNEXPLORED};
 use super::heuristics::manhattan_h;
+use crate::grid::Grid;
 use std::cmp::{Ord, Ordering, PartialOrd, Reverse};
 use std::collections::BinaryHeap;
 use std::io::{self, Write};
@@ -192,10 +192,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
    let mut diag_map = DiagMap::new(grid.size());
-   let mut stack: Vec<Node> = vec![Node {
-      i: start,
-      path: vec![],
-   }];
+   let mut stack: Vec<Node> = vec![Node { i: start, path: vec![] }];
    let mut neighbors_to_generate = Vec::with_capacity(4);
    while let Some(mut cur_node) = stack.pop() {
       if cur_node.i == goal {
@@ -282,10 +279,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
    let mut best_paths = vec![std::usize::MAX; grid.size()].into_boxed_slice();
    let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
    let mut neighbors_to_generate = Vec::with_capacity(4);
-   open.push(Reverse(Node {
-      i: start,
-      path: vec![],
-   }));
+   open.push(Reverse(Node { i: start, path: vec![] }));
    while let Some(Reverse(mut cur_node)) = open.pop() {
       let cur_path_len = cur_node.path.len() + 1;
       // expand

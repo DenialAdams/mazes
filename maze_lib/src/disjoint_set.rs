@@ -1,5 +1,5 @@
 pub(crate) struct DisjointSet {
-   tree: Vec<Node>
+   tree: Vec<Node>,
 }
 
 struct Node {
@@ -11,14 +11,9 @@ impl DisjointSet {
    pub fn new(num_sets: usize) -> DisjointSet {
       let mut tree = Vec::with_capacity(num_sets);
       for i in 0..num_sets {
-         tree.push(Node {
-            parent: i,
-            rank: 0,
-         });
+         tree.push(Node { parent: i, rank: 0 });
       }
-      DisjointSet {
-         tree,
-      }
+      DisjointSet { tree }
    }
 
    // find with path compression

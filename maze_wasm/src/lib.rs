@@ -77,7 +77,9 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> PfDataWasm {
    let pf_data = match pathfind_algo {
       "UniformCostSearch" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::null_h, start, goal, false),
       "AStar" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::manhattan_h, start, goal, false),
-      "GreedyBestFirst" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::manhattan_h, start, goal, true),
+      "GreedyBestFirst" => {
+         pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::manhattan_h, start, goal, true)
+      }
       "DepthFirstSearch" => pathfinding::algos::dfs(&app.grid, start, goal),
       _ => panic!("Got a bad pathfinding algo from JS"),
    }

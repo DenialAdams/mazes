@@ -2,7 +2,7 @@
 
 use maze_lib::grid::Grid;
 use maze_lib::mazegen;
-use rand::{SeedableRng, FromEntropy};
+use rand::{FromEntropy, SeedableRng};
 use rand_xorshift::XorShiftRng;
 //use std::fs::File;
 //use std::io::{self, BufWriter, Write};
@@ -86,7 +86,10 @@ fn main() {
    //let pf_data = maze_lib::pathfinding::algos::a_star(&grid, maze_lib::pathfinding::heuristics::manhattan_h, 0, grid.size() - 1, false).unwrap();
    let pf_data = maze_lib::pathfinding::algos::dfs(&grid, 0, grid.size() - 1).unwrap();
    println!("pathfinding elapsed: {}", start_time.elapsed().as_secs_f64());
-   println!("for every 1 node we expanded, on average we generated {} nodes", pf_data.nodes_generated as f64 / pf_data.nodes_expanded as f64);
+   println!(
+      "for every 1 node we expanded, on average we generated {} nodes",
+      pf_data.nodes_generated as f64 / pf_data.nodes_expanded as f64
+   );
    /*
    // write the maze clean
    {

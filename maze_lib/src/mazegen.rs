@@ -27,7 +27,7 @@ impl fmt::Display for Algo {
             Algo::Wilson => "Wilsons's",
             Algo::HuntAndKill => "Hunt and Kill",
             Algo::RecursiveBacktracker => "Recursive Backtracker",
-            Algo::Kruskal => "Kruskal's"
+            Algo::Kruskal => "Kruskal's",
          }
       )
    }

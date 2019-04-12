@@ -46,7 +46,9 @@ impl DiagMap {
    pub fn mark_expanded(&mut self, index: usize) {
       self.inner[index] |= DIAG_EXPANDED;
       self.expanded_history.push(index);
-      self.num_generated_history.push((self.generated_history.len() - self.last_generated_len) as u8);
+      self
+         .num_generated_history
+         .push((self.generated_history.len() - self.last_generated_len) as u8);
       self.last_generated_len = self.generated_history.len();
    }
 
