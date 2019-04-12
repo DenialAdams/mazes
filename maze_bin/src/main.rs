@@ -4,11 +4,12 @@ use maze_lib::grid::Grid;
 use maze_lib::mazegen;
 use rand::{SeedableRng, FromEntropy};
 use rand_xorshift::XorShiftRng;
-use std::fs::File;
-use std::io::{self, BufWriter, Write};
+//use std::fs::File;
+//use std::io::{self, BufWriter, Write};
 use fxhash;
 use std::time::Instant;
 
+/*
 fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
    let mut destination = BufWriter::new(File::create(format!("{}.svg", name)).unwrap());
    writeln!(
@@ -18,7 +19,7 @@ fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
       (grid.height * 3) + 6
    )?;
    Ok(destination)
-}
+} */
 
 fn main() {
    let seed_string = "arc";
@@ -67,7 +68,7 @@ fn main() {
       }
       return;
    }
-   let mut grid = Grid::new(700, 700);
+   let mut grid = Grid::new(900, 900);
    // mazegen
    {
       //let start_time = Instant::now();
@@ -77,12 +78,14 @@ fn main() {
       //mazegen::wilson(&mut grid, &mut rng);
       //mazegen::hunt_and_kill(&mut grid, &mut rng);
       mazegen::recursive_backtracker(&mut grid, &mut rng);
+      //mazegen::kruskal(&mut grid, &mut rng);
       //println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
       println!("{} dead-ends", grid.dead_ends().count());
    }
    let start_time = Instant::now();
-   maze_lib::pathfinding::algos::a_star(&grid, maze_lib::pathfinding::heuristics::manhattan_h, 0, grid.size() - 1, false);
+   let pf_data = maze_lib::pathfinding::algos::a_star(&grid, maze_lib::pathfinding::heuristics::manhattan_h, 0, grid.size() - 1, false).unwrap();
    println!("pathfinding elapsed: {}", start_time.elapsed().as_secs_f64());
+   println!("for every 1 node we expanded, on average we generated {} nodes", pf_data.nodes_generated as f64 / pf_data.nodes_expanded as f64);
    /*
    // write the maze clean
    {
