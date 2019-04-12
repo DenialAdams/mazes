@@ -95,6 +95,7 @@ pub fn write_path_to_svg<W: Write>(path: &[usize], width: usize, dest: &mut W) -
    Ok(())
 }
 
+#[inline(never)]
 pub fn a_star<F>(grid: &Grid, h: F, start: usize, goal: usize, greedy: bool) -> Option<PathData>
 where
    F: Fn(usize, usize, usize) -> usize,
