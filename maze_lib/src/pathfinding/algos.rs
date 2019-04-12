@@ -160,7 +160,7 @@ where
             // first, we generate every node other than the first neighbor
             neighbors_to_generate.iter().skip(1).for_each(|i| {
                open.push(Reverse(PriorityNode {
-                  priority: g + h(i_west, goal, grid.width),
+                  priority: g + h(*i, goal, grid.width),
                   i: *i,
                   path: cur_node.path.clone(),
                }));
@@ -172,7 +172,7 @@ where
             // in mazes, so avoiding a clone is a huge optimization
             if let Some(i) = neighbors_to_generate.get(0) {
                open.push(Reverse(PriorityNode {
-                  priority: g + h(i_west, goal, grid.width),
+                  priority: g + h(*i, goal, grid.width),
                   i: *i,
                   path: cur_node.path,
                }));
