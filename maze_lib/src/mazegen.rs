@@ -13,7 +13,7 @@ pub enum Algo {
    HuntAndKill,
    RecursiveBacktracker,
    Kruskal,
-   RecursiveDivision
+   RecursiveDivision,
 }
 
 impl fmt::Display for Algo {
@@ -55,7 +55,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
       Algo::HuntAndKill => hunt_and_kill(grid, rng),
       Algo::RecursiveBacktracker => recursive_backtracker(grid, rng),
       Algo::Kruskal => kruskal(grid, rng),
-      Algo::RecursiveBacktracker => recursive_division(grid, rng),
+      Algo::RecursiveDivision => recursive_division(grid, rng),
    }
 }
 
