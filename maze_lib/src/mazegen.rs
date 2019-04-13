@@ -241,21 +241,21 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
       }
    }
 
-   let mut rects = vec![(
+   let mut rects = vec![
       Rectangle {
          x: 0,
          y: 0,
          width: grid.width,
          height: grid.height,
       },
-      true,
-   )];
-   while let Some((rect, is_vertical)) = rects.pop() {
+   ];
+   while let Some(rect) = rects.pop() {
       if rect.width <= 1 || rect.height <= 1 {
          continue;
       }
 
-      if is_vertical {
+      // divide vertically
+      if rect.height <= rect.width {
          let mid_x = rect.x + rect.width / 2;
          for i in rect.y..(rect.y + rect.height) {
             grid.disconnect_cell_west(i * grid.width + mid_x);
@@ -263,24 +263,22 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
          let random_i = (rect.y..(rect.y + rect.height)).choose(rng).unwrap();
          grid.connect_cell_west(random_i * grid.width + mid_x);
          // divide
-         rects.push((
+         rects.push(
             Rectangle {
                x: rect.x,
                y: rect.y,
                width: rect.width / 2,
                height: rect.height,
             },
-            !is_vertical,
-         ));
-         rects.push((
+         );
+         rects.push(
             Rectangle {
                x: rect.x + rect.width / 2,
                y: rect.y,
                width: (rect.width / 2) + (rect.width % 2),
                height: rect.height,
             },
-            !is_vertical,
-         ));
+         );
       } else {
          let mid_y = rect.y + rect.height / 2;
          for i in rect.x..(rect.x + rect.width) {
@@ -290,24 +288,22 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
          grid.connect_cell_north(mid_y * grid.width + random_i);
          println!("{}", grid);
          // divide
-         rects.push((
+         rects.push(
             Rectangle {
                x: rect.x,
                y: rect.y,
                width: rect.width,
                height: rect.height / 2,
             },
-            !is_vertical,
-         ));
-         rects.push((
+         );
+         rects.push(
             Rectangle {
                x: rect.x,
                y: rect.y + rect.height / 2,
                width: rect.width,
                height: (rect.height / 2) + (rect.height % 2),
             },
-            !is_vertical,
-         ));
+         );
       }
    }
 }
