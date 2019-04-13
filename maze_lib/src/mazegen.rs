@@ -225,7 +225,6 @@ pub fn kruskal<R: Rng>(grid: &mut Grid, rng: &mut R) {
 }
 
 pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   #[derive(Debug)]
    struct Rectangle {
       x: usize,
       y: usize,
@@ -255,7 +254,6 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
       if rect.width <= 1 || rect.height <= 1 {
          continue;
       }
-      println!("{:#?} - vertical: {}", rect, is_vertical);
 
       if is_vertical {
          let mid_x = rect.x + rect.width / 2;
@@ -264,7 +262,6 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
          }
          let random_i = (rect.y..(rect.y + rect.height)).choose(rng).unwrap();
          grid.connect_cell_west(random_i * grid.width + mid_x);
-         println!("{}", grid);
          // divide
          rects.push((
             Rectangle {
