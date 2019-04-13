@@ -171,6 +171,28 @@ impl Grid {
       self[index + 1].west_connected = true;
    }
 
+   pub fn disconnect_cell_north(&mut self, index: usize) {
+      let width = self.width;
+      self[index].north_connected = false;
+      self[index - width].south_connected = false;
+   }
+
+   pub fn disconnect_cell_south(&mut self, index: usize) {
+      let width = self.width;
+      self[index].south_connected = false;
+      self[index + width].north_connected = false;
+   }
+
+   pub fn disconnect_cell_west(&mut self, index: usize) {
+      self[index].west_connected = false;
+      self[index - 1].east_connected = false;
+   }
+
+   pub fn disconnect_cell_east(&mut self, index: usize) {
+      self[index].east_connected = false;
+      self[index + 1].west_connected = false;
+   }
+
    pub fn size(&self) -> usize {
       self.inner.len()
    }

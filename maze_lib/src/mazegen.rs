@@ -219,3 +219,54 @@ pub fn kruskal<R: Rng>(grid: &mut Grid, rng: &mut R) {
       grid.connect_neighbors(edge.0, edge.1);
    }
 }
+
+pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   struct Rectangle {
+      x: usize,
+      y: usize,
+      width: usize,
+      height: usize,
+   }
+   // make the grid fully connected
+   for i in 0..grid.size() {
+      if grid.has_neighbor_south(i) {
+         grid.connect_cell_south(i)
+      }
+      if grid.has_neighbor_east(i) {
+         grid.connect_cell_east(i)
+      }
+   }
+
+   let mut rects = vec![(Rectangle { x: 0, y: 0, width: grid.width, height: grid.height}, true)];
+   while let Some((rect, is_vertical)) = rects.pop() {
+      if is_vertical {
+         let mid_x = rect.width / 2;
+         for i in rect.y..rect.height {
+            grid.disconnect_cell_west(i * grid.width + mid_x);
+         }
+         let random_i = (rect.y..rect.height).choose(rng).unwrap();
+         grid.connect_cell_west(random_i * grid.width + mid_x);
+         rects.push((Rectangle {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width / 2,
+            height: rect.height,
+         }, !is_vertical));
+         rects.push((Rectangle {
+            x: rect.x,
+            y: rect.y + rect.height / 2,
+            width: rect.width / 2,
+            height: rect.height,
+         }, !is_vertical));
+      } else {
+         let mid_y = rect.height / 2;
+         for i in rect.x..rect.width {
+            grid.disconnect_cell_north(mid_y * grid.width + i);
+         }
+         let random_i = (rect.y..rect.height).choose(rng).unwrap();
+         grid.connect_cell_north(mid_y * grid.width + random_i);
+      }
+   }
+
+   println!("{}", grid);
+}

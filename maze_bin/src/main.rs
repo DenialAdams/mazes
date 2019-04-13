@@ -22,7 +22,7 @@ fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
 } */
 
 fn main() {
-   let seed_string = "arc";
+   let seed_string = "";
    let mut rng = if seed_string.is_empty() {
       XorShiftRng::from_entropy()
    } else {
@@ -68,7 +68,7 @@ fn main() {
       }
       return;
    }
-   let mut grid = Grid::new(900, 900);
+   let mut grid = Grid::new(5, 5);
    // mazegen
    {
       //let start_time = Instant::now();
@@ -77,8 +77,9 @@ fn main() {
       //mazegen::aldous_broder(&mut grid, &mut rng);
       //mazegen::wilson(&mut grid, &mut rng);
       //mazegen::hunt_and_kill(&mut grid, &mut rng);
-      mazegen::recursive_backtracker(&mut grid, &mut rng);
+      //mazegen::recursive_backtracker(&mut grid, &mut rng);
       //mazegen::kruskal(&mut grid, &mut rng);
+      mazegen::recursive_division(&mut grid, &mut rng);
       //println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
       println!("{} dead-ends", grid.dead_ends().count());
    }
