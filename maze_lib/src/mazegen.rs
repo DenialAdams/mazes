@@ -13,6 +13,7 @@ pub enum Algo {
    HuntAndKill,
    RecursiveBacktracker,
    Kruskal,
+   Eller,
    RecursiveDivision,
 }
 
@@ -29,13 +30,14 @@ impl fmt::Display for Algo {
             Algo::HuntAndKill => "Hunt and Kill",
             Algo::RecursiveBacktracker => "Recursive Backtracker",
             Algo::Kruskal => "Kruskal's",
+            Algo::Eller => "Eller's",
             Algo::RecursiveDivision => "Recursive Division",
          }
       )
    }
 }
 
-pub const ALGOS: [Algo; 8] = [
+pub const ALGOS: [Algo; 9] = [
    Algo::BinaryTree,
    Algo::Sidewinder,
    Algo::AldousBroder,
@@ -43,6 +45,7 @@ pub const ALGOS: [Algo; 8] = [
    Algo::HuntAndKill,
    Algo::RecursiveBacktracker,
    Algo::Kruskal,
+   Algo::Eller,
    Algo::RecursiveDivision,
 ];
 
@@ -55,6 +58,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
       Algo::HuntAndKill => hunt_and_kill(grid, rng),
       Algo::RecursiveBacktracker => recursive_backtracker(grid, rng),
       Algo::Kruskal => kruskal(grid, rng),
+      Algo::Eller => eller(grid, rng),
       Algo::RecursiveDivision => recursive_division(grid, rng),
    }
 }
@@ -221,6 +225,52 @@ pub fn kruskal<R: Rng>(grid: &mut Grid, rng: &mut R) {
       }
       disjoint_set.union(edge.0, edge.1);
       grid.connect_neighbors(edge.0, edge.1);
+   }
+}
+
+pub fn eller<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   let mut disjoint_set = DisjointSet::new(grid.size());
+   let mut sets_to_elems_in_set: Vec<Vec<usize>> = vec![vec![]; grid.size()];
+   let mut sets_in_row: Vec<usize> = Vec::with_capacity(grid.width);
+   for r in 0..grid.height {
+      let start_of_row = r * grid.width;
+      let end_of_row = start_of_row + (grid.width - 1);
+      // connect within row
+      for i in start_of_row..end_of_row {
+         if disjoint_set.find(i) == disjoint_set.find(i + 1) {
+            continue;
+         }
+         if r == (grid.height - 1) || rng.gen_bool(0.5) {
+            disjoint_set.union(i, i + 1);
+            grid.connect_cell_east(i);
+         }
+      }
+      if r == (grid.height - 1) {
+         break;
+      }
+      // connect one representative of each set in row south
+      for list in sets_to_elems_in_set.iter_mut() {
+         list.clear();
+      }
+      sets_in_row.clear();
+      for i in start_of_row..=end_of_row {
+         sets_to_elems_in_set[disjoint_set.find(i)].push(i);
+         sets_in_row.push(disjoint_set.find(i));
+      }
+      sets_in_row.sort_unstable();
+      sets_in_row.dedup();
+      for set_in_row in sets_in_row.iter() {
+         sets_to_elems_in_set[*set_in_row].shuffle(rng);
+         let chosen_rep = sets_to_elems_in_set[*set_in_row][0];
+         disjoint_set.union(chosen_rep, chosen_rep + grid.width);
+         grid.connect_cell_south(chosen_rep);
+         for elem in sets_to_elems_in_set[*set_in_row].iter().skip(1) {
+            if rng.gen_bool(0.333) {
+               disjoint_set.union(*elem, *elem + grid.width);
+               grid.connect_cell_south(*elem);
+            }
+         }
+      }
    }
 }
 

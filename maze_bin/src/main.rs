@@ -79,7 +79,8 @@ fn main() {
       //mazegen::hunt_and_kill(&mut grid, &mut rng);
       //mazegen::recursive_backtracker(&mut grid, &mut rng);
       //mazegen::kruskal(&mut grid, &mut rng);
-      mazegen::recursive_division(&mut grid, &mut rng);
+      //mazegen::recursive_division(&mut grid, &mut rng);
+      mazegen::eller(&mut grid, &mut rng);
       //println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
       println!("{} dead-ends", grid.dead_ends().count());
    }
