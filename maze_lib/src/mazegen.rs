@@ -13,6 +13,7 @@ pub enum Algo {
    HuntAndKill,
    RecursiveBacktracker,
    Kruskal,
+   RecursiveDivision
 }
 
 impl fmt::Display for Algo {
@@ -28,12 +29,13 @@ impl fmt::Display for Algo {
             Algo::HuntAndKill => "Hunt and Kill",
             Algo::RecursiveBacktracker => "Recursive Backtracker",
             Algo::Kruskal => "Kruskal's",
+            Algo::RecursiveDivision => "Recursive Division",
          }
       )
    }
 }
 
-pub const ALGOS: [Algo; 7] = [
+pub const ALGOS: [Algo; 8] = [
    Algo::BinaryTree,
    Algo::Sidewinder,
    Algo::AldousBroder,
@@ -41,6 +43,7 @@ pub const ALGOS: [Algo; 7] = [
    Algo::HuntAndKill,
    Algo::RecursiveBacktracker,
    Algo::Kruskal,
+   Algo::RecursiveDivision,
 ];
 
 pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
@@ -52,6 +55,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
       Algo::HuntAndKill => hunt_and_kill(grid, rng),
       Algo::RecursiveBacktracker => recursive_backtracker(grid, rng),
       Algo::Kruskal => kruskal(grid, rng),
+      Algo::RecursiveBacktracker => recursive_division(grid, rng),
    }
 }
 
@@ -221,6 +225,7 @@ pub fn kruskal<R: Rng>(grid: &mut Grid, rng: &mut R) {
 }
 
 pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   #[derive(Debug)]
    struct Rectangle {
       x: usize,
       y: usize,
@@ -239,13 +244,20 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
 
    let mut rects = vec![(Rectangle { x: 0, y: 0, width: grid.width, height: grid.height}, true)];
    while let Some((rect, is_vertical)) = rects.pop() {
+      if rect.width <= 1 || rect.height <= 1 {
+         continue;
+      }
+      println!("{:#?} - vertical: {}", rect, is_vertical);
+
       if is_vertical {
-         let mid_x = rect.width / 2;
-         for i in rect.y..rect.height {
+         let mid_x = rect.x + rect.width / 2;
+         for i in rect.y..(rect.y+rect.height) {
             grid.disconnect_cell_west(i * grid.width + mid_x);
          }
-         let random_i = (rect.y..rect.height).choose(rng).unwrap();
+         let random_i = (rect.y..(rect.y+rect.height)).choose(rng).unwrap();
          grid.connect_cell_west(random_i * grid.width + mid_x);
+         println!("{}", grid);
+         // divide
          rects.push((Rectangle {
             x: rect.x,
             y: rect.y,
@@ -253,20 +265,32 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
             height: rect.height,
          }, !is_vertical));
          rects.push((Rectangle {
-            x: rect.x,
-            y: rect.y + rect.height / 2,
-            width: rect.width / 2,
+            x: rect.x + rect.width / 2,
+            y: rect.y,
+            width: (rect.width / 2) + (rect.width % 2),
             height: rect.height,
          }, !is_vertical));
       } else {
-         let mid_y = rect.height / 2;
-         for i in rect.x..rect.width {
+         let mid_y = rect.y + rect.height / 2;
+         for i in rect.x..(rect.x+rect.width) {
             grid.disconnect_cell_north(mid_y * grid.width + i);
          }
-         let random_i = (rect.y..rect.height).choose(rng).unwrap();
+         let random_i = (rect.x..(rect.x+rect.width)).choose(rng).unwrap();
          grid.connect_cell_north(mid_y * grid.width + random_i);
+         println!("{}", grid);
+         // divide
+         rects.push((Rectangle {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height / 2,
+         }, !is_vertical));
+         rects.push((Rectangle {
+            x: rect.x,
+            y: rect.y + rect.height / 2,
+            width: rect.width,
+            height: (rect.height / 2) + (rect.height % 2),
+         }, !is_vertical));
       }
    }
-
-   println!("{}", grid);
 }
