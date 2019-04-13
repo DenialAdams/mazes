@@ -26,6 +26,7 @@
                </select>
                Seed: <input id="mazegen-seed" />
                <button onclick="genSetMaze()">Generate maze</button>
+               # Deadends: <div id="num-deadends">0</div>
             </div>
             <div id="pathfind-options" class="opt-item">
                <h4>Pathfinding</h4><br>
@@ -42,7 +43,7 @@
                </select>
                Animation Delay (ms):
                <input onchange="animDelayChange()" id="anim-delay" type="number" min="0" value="0" step="any" />
-               Nodes expanded: <div id="nodes-expanded" >0</div>
+               Nodes expanded: <div id="nodes-expanded">0</div>
                Nodes generated: <div id="nodes-generated">0</div>
             </div>
          </div>

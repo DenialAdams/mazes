@@ -127,7 +127,20 @@ pub fn change_grid(width: usize, height: usize) -> String {
 }
 
 #[wasm_bindgen]
-pub fn carve_maze(mazegen_algo: &str, seed_string: String) -> String {
+pub struct MazeCarveResults {
+   maze_svg: String,
+   pub num_deadends: usize,
+}
+
+#[wasm_bindgen]
+impl MazeCarveResults {
+   pub fn maze_svg(&self) -> String {
+      self.maze_svg.clone()
+   }
+}
+
+#[wasm_bindgen]
+pub fn carve_maze(mazegen_algo: &str, seed_string: String) -> MazeCarveResults {
    let app = unsafe { MAZE_APP.as_mut().unwrap() };
    let algo = match mazegen_algo {
       "BinaryTree" => mazegen::Algo::BinaryTree,
@@ -152,5 +165,8 @@ pub fn carve_maze(mazegen_algo: &str, seed_string: String) -> String {
    writeln!(result, "<g id=\"g_maze\">").unwrap();
    app.grid.write_maze_as_svg(&mut result).unwrap();
    writeln!(result, "</g>").unwrap();
-   unsafe { String::from_utf8_unchecked(result) }
+   MazeCarveResults {
+      maze_svg: unsafe { String::from_utf8_unchecked(result) },
+      num_deadends: app.grid.dead_ends().count(),
+   }
 }
