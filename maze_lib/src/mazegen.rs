@@ -1,8 +1,11 @@
 use crate::disjoint_set::DisjointSet;
 use crate::grid::Grid;
+use rand::distributions::{Distribution, Uniform};
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::Rng;
 use std::fmt;
+use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 
 #[derive(Copy, Clone)]
 pub enum Algo {
@@ -16,6 +19,7 @@ pub enum Algo {
    Eller,
    RecursiveDivision,
    PrimSimplified,
+   PrimTrue,
 }
 
 impl fmt::Display for Algo {
@@ -34,12 +38,13 @@ impl fmt::Display for Algo {
             Algo::Eller => "Eller's",
             Algo::RecursiveDivision => "Recursive Division",
             Algo::PrimSimplified => "Prim's (Simplified)",
+            Algo::PrimTrue => "Prim's (True)",
          }
       )
    }
 }
 
-pub const ALGOS: [Algo; 10] = [
+pub const ALGOS: [Algo; 11] = [
    Algo::BinaryTree,
    Algo::Sidewinder,
    Algo::AldousBroder,
@@ -50,6 +55,7 @@ pub const ALGOS: [Algo; 10] = [
    Algo::Eller,
    Algo::RecursiveDivision,
    Algo::PrimSimplified,
+   Algo::PrimTrue,
 ];
 
 pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
@@ -64,6 +70,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
       Algo::Eller => eller(grid, rng),
       Algo::RecursiveDivision => recursive_division(grid, rng),
       Algo::PrimSimplified => prim_simplified(grid, rng),
+      Algo::PrimTrue => prim_true(grid, rng),
    }
 }
 
@@ -372,6 +379,63 @@ pub fn prim_simplified<R: Rng>(grid: &mut Grid, rng: &mut R) {
          let chosen_neighbor = *available_neighbors.choose(rng).unwrap();
          grid.connect_neighbors(i, chosen_neighbor);
          frontier.push(chosen_neighbor);
+      }
+   }
+}
+
+pub fn prim_true<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   #[derive(PartialEq, Eq)]
+   struct FrontierNode {
+      grid_index: usize,
+      cost: u8,
+   }
+
+   impl Ord for FrontierNode {
+      fn cmp(&self, other: &FrontierNode) -> Ordering {
+         other.cost.cmp(&self.cost)
+      }
+   }
+
+   impl PartialOrd for FrontierNode {
+      fn partial_cmp(&self, other: &FrontierNode) -> Option<Ordering> {
+         Some(self.cmp(other))
+      }
+   }
+
+   let costs = {
+      let mut costs: Vec<u8> = Vec::with_capacity(grid.size());
+      let range = Uniform::new(0, 100);
+      for _ in 0..grid.size() {
+         costs.push(range.sample(rng));
+      }
+      costs
+   };
+
+   let mut frontier = BinaryHeap::new();
+   let start = rng.gen_range(0, grid.size());
+   frontier.push(FrontierNode {
+      grid_index: start,
+      cost: costs[start],
+   });
+
+   let mut neighbors: Vec<usize> = Vec::with_capacity(4);
+   let mut available_neighbors: Vec<usize> = Vec::with_capacity(4);
+
+   while let Some(frn) = frontier.peek() {
+      neighbors.clear();
+      grid.neighbors(frn.grid_index, &mut neighbors);
+      available_neighbors.clear();
+      available_neighbors.extend(neighbors.iter().filter(|x| grid[**x].num_connections() == 0));
+
+      if available_neighbors.is_empty() {
+         frontier.pop();
+      } else {
+         let chosen_neighbor = *available_neighbors.iter().min_by_key(|x| costs[**x]).unwrap();
+         grid.connect_neighbors(frn.grid_index, chosen_neighbor);
+         frontier.push(FrontierNode {
+            grid_index: chosen_neighbor,
+            cost: costs[chosen_neighbor],
+         });
       }
    }
 }

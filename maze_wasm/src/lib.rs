@@ -153,6 +153,7 @@ pub fn carve_maze(mazegen_algo: &str, seed_string: String) -> MazeCarveResults {
       "RecursiveDivision" => mazegen::Algo::RecursiveDivision,
       "Eller" => mazegen::Algo::Eller,
       "PrimSimplified" => mazegen::Algo::PrimSimplified,
+      "PrimTrue" => mazegen::Algo::PrimTrue,
       _ => panic!("Got a bad mazegen algo from JS"),
    };
    let mut result = Vec::new();
