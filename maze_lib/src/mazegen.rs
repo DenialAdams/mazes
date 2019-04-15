@@ -15,6 +15,7 @@ pub enum Algo {
    Kruskal,
    Eller,
    RecursiveDivision,
+   PrimSimplified,
 }
 
 impl fmt::Display for Algo {
@@ -32,12 +33,13 @@ impl fmt::Display for Algo {
             Algo::Kruskal => "Kruskal's",
             Algo::Eller => "Eller's",
             Algo::RecursiveDivision => "Recursive Division",
+            Algo::PrimSimplified => "Prim's (Simplified)"
          }
       )
    }
 }
 
-pub const ALGOS: [Algo; 9] = [
+pub const ALGOS: [Algo; 10] = [
    Algo::BinaryTree,
    Algo::Sidewinder,
    Algo::AldousBroder,
@@ -47,6 +49,7 @@ pub const ALGOS: [Algo; 9] = [
    Algo::Kruskal,
    Algo::Eller,
    Algo::RecursiveDivision,
+   Algo::PrimSimplified,
 ];
 
 pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
@@ -60,6 +63,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
       Algo::Kruskal => kruskal(grid, rng),
       Algo::Eller => eller(grid, rng),
       Algo::RecursiveDivision => recursive_division(grid, rng),
+      Algo::PrimSimplified => prim_simplified(grid, rng),
    }
 }
 
@@ -343,6 +347,31 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
             width: rect.width,
             height: (rect.height / 2) + (rect.height % 2),
          });
+      }
+   }
+}
+
+pub fn prim_simplified<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   let mut frontier = Vec::new();
+   frontier.push(rng.gen_range(0, grid.size()));
+
+   let mut neighbors: Vec<usize> = Vec::with_capacity(4);
+   let mut available_neighbors: Vec<usize> = Vec::with_capacity(4);
+   while !frontier.is_empty() {
+      let frontier_index = rng.gen_range(0, frontier.len());
+      let i = frontier[frontier_index];
+
+      neighbors.clear();
+      grid.neighbors(i, &mut neighbors);
+      available_neighbors.clear();
+      available_neighbors.extend(neighbors.iter().filter(|x| grid[**x].num_connections() == 0));
+
+      if available_neighbors.is_empty() {
+         frontier.swap_remove(frontier_index);
+      } else {
+         let chosen_neighbor = *available_neighbors.choose(rng).unwrap();
+         grid.connect_neighbors(i, chosen_neighbor);
+         frontier.push(chosen_neighbor);
       }
    }
 }

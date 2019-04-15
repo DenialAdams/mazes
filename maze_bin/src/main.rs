@@ -4,12 +4,11 @@ use maze_lib::grid::Grid;
 use maze_lib::mazegen;
 use rand::{FromEntropy, SeedableRng};
 use rand_xorshift::XorShiftRng;
-//use std::fs::File;
-//use std::io::{self, BufWriter, Write};
+use std::fs::File;
+use std::io::{self, BufWriter, Write};
 use fxhash;
 use std::time::Instant;
 
-/*
 fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
    let mut destination = BufWriter::new(File::create(format!("{}.svg", name)).unwrap());
    writeln!(
@@ -19,7 +18,7 @@ fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
       (grid.height * 3) + 6
    )?;
    Ok(destination)
-} */
+}
 
 fn main() {
    let seed_string = "";
@@ -68,10 +67,10 @@ fn main() {
       }
       return;
    }
-   let mut grid = Grid::new(5, 5);
+   let mut grid = Grid::new(1_000, 1_000);
    // mazegen
    {
-      //let start_time = Instant::now();
+      let start_time = Instant::now();
       //mazegen::binary_tree(&mut grid, &mut rng);
       //mazegen::sidewinder(&mut grid, &mut rng);
       //mazegen::aldous_broder(&mut grid, &mut rng);
@@ -80,8 +79,9 @@ fn main() {
       //mazegen::recursive_backtracker(&mut grid, &mut rng);
       //mazegen::kruskal(&mut grid, &mut rng);
       //mazegen::recursive_division(&mut grid, &mut rng);
-      mazegen::eller(&mut grid, &mut rng);
-      //println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
+      //mazegen::eller(&mut grid, &mut rng);
+      mazegen::prim_simplified(&mut grid, &mut rng);
+      println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
       println!("{} dead-ends", grid.dead_ends().count());
    }
    let start_time = Instant::now();
@@ -92,11 +92,10 @@ fn main() {
       "for every 1 node we expanded, on average we generated {} nodes",
       pf_data.nodes_generated as f64 / pf_data.nodes_expanded as f64
    );
-   /*
    // write the maze clean
    {
       let mut dest = init_svg("maze", &grid).unwrap();
       grid.write_maze_as_svg(&mut dest).unwrap();
       writeln!(dest, "</svg>").unwrap();
-   } */
+   }
 }

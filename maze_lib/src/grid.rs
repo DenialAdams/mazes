@@ -11,7 +11,7 @@ pub struct Cell {
 }
 
 impl Cell {
-   fn num_connections(self) -> u8 {
+   pub fn num_connections(self) -> u8 {
       self.north_connected as u8 + self.south_connected as u8 + self.east_connected as u8 + self.west_connected as u8
    }
 }
