@@ -3,9 +3,9 @@ use crate::grid::Grid;
 use rand::distributions::{Distribution, Uniform};
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::Rng;
-use std::fmt;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
+use std::fmt;
 
 #[derive(Copy, Clone)]
 pub enum Algo {
