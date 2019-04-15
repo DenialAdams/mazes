@@ -33,7 +33,7 @@ impl fmt::Display for Algo {
             Algo::Kruskal => "Kruskal's",
             Algo::Eller => "Eller's",
             Algo::RecursiveDivision => "Recursive Division",
-            Algo::PrimSimplified => "Prim's (Simplified)"
+            Algo::PrimSimplified => "Prim's (Simplified)",
          }
       )
    }

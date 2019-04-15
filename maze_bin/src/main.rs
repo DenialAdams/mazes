@@ -1,12 +1,12 @@
 #![feature(duration_float)]
 
+use fxhash;
 use maze_lib::grid::Grid;
 use maze_lib::mazegen;
 use rand::{FromEntropy, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
-use fxhash;
 use std::time::Instant;
 
 fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
