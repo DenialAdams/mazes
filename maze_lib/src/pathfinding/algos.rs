@@ -20,7 +20,10 @@ impl PartialOrd for PriorityNode {
 
 impl Ord for PriorityNode {
    fn cmp(&self, other: &PriorityNode) -> Ordering {
-      self.priority.cmp(&other.priority)
+      self
+         .priority
+         .cmp(&other.priority)
+         .then(self.path.len().cmp(&other.path.len()))
    }
 }
 
