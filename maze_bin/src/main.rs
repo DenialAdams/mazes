@@ -21,7 +21,7 @@ fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
 }
 
 fn main() {
-   let seed_string = "";
+   let seed_string = "jitter";
    let mut rng = if seed_string.is_empty() {
       XorShiftRng::from_entropy()
    } else {
@@ -88,12 +88,8 @@ fn main() {
    //let pf_data = maze_lib::pathfinding::algos::a_star(&grid, maze_lib::pathfinding::heuristics::manhattan_h, 0, grid.size() - 1, false).unwrap();
    let pf_data = maze_lib::pathfinding::algos::dfs(&grid, 0, grid.size() - 1).unwrap();
    println!("pathfinding elapsed: {}", start_time.elapsed().as_secs_f64());
-   println!(
-      "for every 1 node we expanded, on average we generated {} nodes",
-      pf_data.nodes_generated as f64 / pf_data.nodes_expanded as f64
-   );
    // write the maze clean
-   {
+   if false {
       let mut dest = init_svg("maze", &grid).unwrap();
       grid.write_maze_as_svg(&mut dest).unwrap();
       writeln!(dest, "</svg>").unwrap();
