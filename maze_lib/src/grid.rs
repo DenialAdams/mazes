@@ -112,7 +112,7 @@ impl Grid {
          self.inner[i1].south_connected
       } else if i2 == i1 + 1 {
          self.inner[i1].east_connected
-      } else if i2 + 1 == i1  {
+      } else if i2 + 1 == i1 {
          self.inner[i1].west_connected
       } else {
          false

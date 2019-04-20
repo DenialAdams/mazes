@@ -203,7 +203,10 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
    let mut diag_map = DiagMap::new(grid.size());
-   let mut stack: Vec<DfsNode> = vec![DfsNode { i: start, path: Rc::new(RefCell::new(vec![])) }];
+   let mut stack: Vec<DfsNode> = vec![DfsNode {
+      i: start,
+      path: Rc::new(RefCell::new(vec![])),
+   }];
    let mut neighbors_to_generate = Vec::with_capacity(4);
    while let Some(cur_node) = stack.pop() {
       let mut cur_node_path = cur_node.path.borrow_mut();
