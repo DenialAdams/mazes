@@ -67,7 +67,7 @@ fn main() {
       }
       return;
    }
-   let mut grid = Grid::new(1_000, 1_000);
+   let mut grid = Grid::new(10_000, 10_000);
    // mazegen
    {
       let start_time = Instant::now();
@@ -76,11 +76,11 @@ fn main() {
       //mazegen::aldous_broder(&mut grid, &mut rng);
       //mazegen::wilson(&mut grid, &mut rng);
       //mazegen::hunt_and_kill(&mut grid, &mut rng);
-      //mazegen::recursive_backtracker(&mut grid, &mut rng);
+      mazegen::recursive_backtracker(&mut grid, &mut rng);
       //mazegen::kruskal(&mut grid, &mut rng);
       //mazegen::recursive_division(&mut grid, &mut rng);
       //mazegen::eller(&mut grid, &mut rng);
-      mazegen::prim_simplified(&mut grid, &mut rng);
+      //mazegen::prim_simplified(&mut grid, &mut rng);
       println!("mazegen elapsed: {}", start_time.elapsed().as_secs_f64());
       println!("{} dead-ends", grid.dead_ends().count());
    }

@@ -191,19 +191,32 @@ where
    None
 }
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
+   struct DfsNode {
+      i: usize,
+      path: Rc<RefCell<Vec<usize>>>,
+   }
+
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
    let mut diag_map = DiagMap::new(grid.size());
-   let mut stack: Vec<Node> = vec![Node { i: start, path: vec![] }];
+   let mut stack: Vec<DfsNode> = vec![DfsNode { i: start, path: Rc::new(RefCell::new(vec![])) }];
    let mut neighbors_to_generate = Vec::with_capacity(4);
-   while let Some(mut cur_node) = stack.pop() {
+   while let Some(cur_node) = stack.pop() {
+      let mut cur_node_path = cur_node.path.borrow_mut();
+      while let Some(last_path_node) = cur_node_path.last() {
+         if grid.check_if_neighbors_and_connected(cur_node.i, *last_path_node) {
+            break;
+         }
+         cur_node_path.pop();
+      }
+      cur_node_path.push(cur_node.i);
       if cur_node.i == goal {
-         let mut final_path = Vec::with_capacity(cur_node.path.len() + 1);
-         final_path.extend_from_slice(&cur_node.path);
-         final_path.push(goal);
          return Some(PathData {
-            path: final_path.into_boxed_slice(),
+            path: cur_node_path.clone().into_boxed_slice(),
             diag: diag_map.into(),
             nodes_generated,
             nodes_expanded,
@@ -213,8 +226,6 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
       // Expand
       let stack_size_before_expansion = stack.len();
       {
-         cur_node.path.reserve_exact(1);
-         cur_node.path.push(cur_node.i);
          // wrapping sub is ok because we only use
          // i.e. i_north when we know it is north connected
          let i_north = cur_node.i.wrapping_sub(grid.width);
@@ -245,7 +256,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
          {
             // first, we generate every node other than the first neighbor
             neighbors_to_generate.iter().skip(1).for_each(|i| {
-               stack.push(Node {
+               stack.push(DfsNode {
                   i: *i,
                   path: cur_node.path.clone(),
                });
@@ -256,9 +267,9 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
             // the vast vast majority of cells have only one neighbor
             // in mazes, so avoiding a clone is a huge optimization
             if let Some(i) = neighbors_to_generate.get(0) {
-               stack.push(Node {
+               stack.push(DfsNode {
                   i: *i,
-                  path: cur_node.path,
+                  path: cur_node.path.clone(),
                });
                nodes_generated += 1;
                diag_map.mark_generated(*i);
@@ -273,7 +284,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
          // note we compare b to a (not a to b) in order to obtain a reverse sort,
          // such that the elements with the smallest h are at the top of the slice
          manhattan_h(b.i, goal, grid.width).cmp(&manhattan_h(a.i, goal, grid.width))
-      })
+      });
    }
    None
 }

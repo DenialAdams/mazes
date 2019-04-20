@@ -105,14 +105,28 @@ impl Grid {
       self.inner.get_mut(index)
    }
 
+   pub fn check_if_neighbors_and_connected(&self, i1: usize, i2: usize) -> bool {
+      if i2 + self.width == i1 {
+         self.inner[i1].north_connected
+      } else if i2 == i1 + self.width {
+         self.inner[i1].south_connected
+      } else if i2 == i1 + 1 {
+         self.inner[i1].east_connected
+      } else if i2 + 1 == i1  {
+         self.inner[i1].west_connected
+      } else {
+         false
+      }
+   }
+
    /// If the cells are not neighbors, an incorrect connection will be made
    pub fn connect_neighbors(&mut self, i1: usize, i2: usize) {
-      if self.has_neighbor_north(i1) && i2 == i1 - self.width {
+      if i2 + self.width == i1 {
          self.connect_cell_north(i1);
       } else if i2 == i1 + self.width {
          self.connect_cell_south(i1);
       } else if i2 == i1 + 1 {
-         self.connect_cell_east(i1)
+         self.connect_cell_east(i1);
       } else {
          self.connect_cell_west(i1);
       }
