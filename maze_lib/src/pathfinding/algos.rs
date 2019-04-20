@@ -263,9 +263,11 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                nodes_generated += 1;
                diag_map.mark_generated(*i);
             });
-            // now, we generate the first neighbor
-            // the vast vast majority of cells have only one neighbor
-            // in mazes, so avoiding a clone is a huge optimization
+            // for dfs, now that we are managing only one path,
+            // this optimization likely does not help any
+            // and might slightly hurt.
+            // @Cleanup at some point.
+            // we can just expand immediately instead of the intermediate list.
             if let Some(i) = neighbors_to_generate.get(0) {
                stack.push(DfsNode {
                   i: *i,
