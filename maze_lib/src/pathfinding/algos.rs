@@ -198,6 +198,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
    struct DfsNode {
       i: usize,
       path: Rc<RefCell<Vec<usize>>>,
+      path_len: usize,
    }
 
    let mut nodes_generated = 0;
@@ -206,15 +207,11 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
    let mut stack: Vec<DfsNode> = vec![DfsNode {
       i: start,
       path: Rc::new(RefCell::new(vec![])),
+      path_len: 0,
    }];
    while let Some(cur_node) = stack.pop() {
       let mut cur_node_path = cur_node.path.borrow_mut();
-      while let Some(last_path_node) = cur_node_path.last() {
-         if grid.check_if_neighbors_and_connected(cur_node.i, *last_path_node) {
-            break;
-         }
-         cur_node_path.pop();
-      }
+      cur_node_path.truncate(cur_node.path_len);
       cur_node_path.push(cur_node.i);
       if cur_node.i == goal {
          return Some(PathData {
@@ -227,6 +224,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
 
       // Expand
       let stack_size_before_expansion = stack.len();
+      let path_len = cur_node_path.len();
       {
          // wrapping sub is ok because we only use
          // i.e. i_north when we know it is north connected
@@ -241,6 +239,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                stack.push(DfsNode {
                   i: i_north,
                   path: Rc::clone(&cur_node.path),
+                  path_len,
                });
                nodes_generated += 1;
                diag_map.mark_generated(i_north);
@@ -250,6 +249,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                stack.push(DfsNode {
                   i: i_south,
                   path: Rc::clone(&cur_node.path),
+                  path_len,
                });
                nodes_generated += 1;
                diag_map.mark_generated(i_south);
@@ -259,6 +259,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                stack.push(DfsNode {
                   i: i_east,
                   path: Rc::clone(&cur_node.path),
+                  path_len,
                });
                nodes_generated += 1;
                diag_map.mark_generated(i_east);
@@ -268,6 +269,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
                stack.push(DfsNode {
                   i: i_west,
                   path: Rc::clone(&cur_node.path),
+                  path_len,
                });
                nodes_generated += 1;
                diag_map.mark_generated(i_west);
