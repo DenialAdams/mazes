@@ -207,7 +207,6 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
       i: start,
       path: Rc::new(RefCell::new(vec![])),
    }];
-   let mut neighbors_to_generate = Vec::with_capacity(4);
    while let Some(cur_node) = stack.pop() {
       let mut cur_node_path = cur_node.path.borrow_mut();
       while let Some(last_path_node) = cur_node_path.last() {
@@ -235,49 +234,43 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
          let i_south = cur_node.i + grid.width;
          let i_east = cur_node.i + 1;
          let i_west = cur_node.i.wrapping_sub(1);
-         neighbors_to_generate.clear();
          // fill neighbors_to_generate with our neighbors
          {
             // N
             if grid[cur_node.i].north_connected && diag_map[i_north] == DIAG_UNEXPLORED {
-               neighbors_to_generate.push(i_north);
+               stack.push(DfsNode {
+                  i: i_north,
+                  path: Rc::clone(&cur_node.path),
+               });
+               nodes_generated += 1;
+               diag_map.mark_generated(i_north);
             }
             // S
             if grid[cur_node.i].south_connected && diag_map[i_south] == DIAG_UNEXPLORED {
-               neighbors_to_generate.push(i_south);
+               stack.push(DfsNode {
+                  i: i_south,
+                  path: Rc::clone(&cur_node.path),
+               });
+               nodes_generated += 1;
+               diag_map.mark_generated(i_south);
             }
             // E
             if grid[cur_node.i].east_connected && diag_map[i_east] == DIAG_UNEXPLORED {
-               neighbors_to_generate.push(i_east);
+               stack.push(DfsNode {
+                  i: i_east,
+                  path: Rc::clone(&cur_node.path),
+               });
+               nodes_generated += 1;
+               diag_map.mark_generated(i_east);
             }
             // W
             if grid[cur_node.i].west_connected && diag_map[i_west] == DIAG_UNEXPLORED {
-               neighbors_to_generate.push(i_west);
-            }
-         }
-         // actually do expansion
-         {
-            // first, we generate every node other than the first neighbor
-            neighbors_to_generate.iter().skip(1).for_each(|i| {
                stack.push(DfsNode {
-                  i: *i,
-                  path: cur_node.path.clone(),
+                  i: i_west,
+                  path: Rc::clone(&cur_node.path),
                });
                nodes_generated += 1;
-               diag_map.mark_generated(*i);
-            });
-            // for dfs, now that we are managing only one path,
-            // this optimization likely does not help any
-            // and might slightly hurt.
-            // @Cleanup at some point.
-            // we can just expand immediately instead of the intermediate list.
-            if let Some(i) = neighbors_to_generate.get(0) {
-               stack.push(DfsNode {
-                  i: *i,
-                  path: cur_node.path.clone(),
-               });
-               nodes_generated += 1;
-               diag_map.mark_generated(*i);
+               diag_map.mark_generated(i_west);
             }
          }
       }
