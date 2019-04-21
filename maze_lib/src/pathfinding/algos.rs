@@ -191,31 +191,26 @@ where
    None
 }
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
    struct DfsNode {
       i: usize,
-      path: Rc<RefCell<Vec<usize>>>,
       path_len: usize,
    }
 
    let mut nodes_generated = 0;
    let mut nodes_expanded = 0;
    let mut diag_map = DiagMap::new(grid.size());
+   let mut path = vec![];
    let mut stack: Vec<DfsNode> = vec![DfsNode {
       i: start,
-      path: Rc::new(RefCell::new(vec![])),
       path_len: 0,
    }];
    while let Some(cur_node) = stack.pop() {
-      let mut cur_node_path = cur_node.path.borrow_mut();
-      cur_node_path.truncate(cur_node.path_len);
-      cur_node_path.push(cur_node.i);
+      path.truncate(cur_node.path_len);
+      path.push(cur_node.i);
       if cur_node.i == goal {
          return Some(PathData {
-            path: cur_node_path.clone().into_boxed_slice(),
+            path: path.into_boxed_slice(),
             diag: diag_map.into(),
             nodes_generated,
             nodes_expanded,
@@ -224,7 +219,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
 
       // Expand
       let stack_size_before_expansion = stack.len();
-      let path_len = cur_node_path.len();
+      let path_len = path.len();
       {
          // wrapping sub is ok because we only use
          // i.e. i_north when we know it is north connected
@@ -238,7 +233,6 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
             if grid[cur_node.i].north_connected && diag_map[i_north] == DIAG_UNEXPLORED {
                stack.push(DfsNode {
                   i: i_north,
-                  path: Rc::clone(&cur_node.path),
                   path_len,
                });
                nodes_generated += 1;
@@ -248,7 +242,6 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
             if grid[cur_node.i].south_connected && diag_map[i_south] == DIAG_UNEXPLORED {
                stack.push(DfsNode {
                   i: i_south,
-                  path: Rc::clone(&cur_node.path),
                   path_len,
                });
                nodes_generated += 1;
@@ -258,7 +251,6 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
             if grid[cur_node.i].east_connected && diag_map[i_east] == DIAG_UNEXPLORED {
                stack.push(DfsNode {
                   i: i_east,
-                  path: Rc::clone(&cur_node.path),
                   path_len,
                });
                nodes_generated += 1;
@@ -268,7 +260,6 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
             if grid[cur_node.i].west_connected && diag_map[i_west] == DIAG_UNEXPLORED {
                stack.push(DfsNode {
                   i: i_west,
-                  path: Rc::clone(&cur_node.path),
                   path_len,
                });
                nodes_generated += 1;
