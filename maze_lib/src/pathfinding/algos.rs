@@ -293,6 +293,9 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
    open.push(Reverse(Node { i: start, path: vec![] }));
    while let Some(Reverse(mut cur_node)) = open.pop() {
       let cur_path_len = cur_node.path.len() + 1;
+      if best_paths[cur_node.i] <= cur_node.path.len() {
+         continue;
+      }
       // expand
       {
          let new_path_len = cur_path_len + 1;
@@ -332,6 +335,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
                   i: *i,
                   path: cur_node.path.clone(),
                }));
+               best_paths[*i] = new_path_len;
             });
             // now, we generate the first neighbor
             // the vast vast majority of cells have only one neighbor
@@ -341,10 +345,10 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
                   i: *i,
                   path: cur_node.path,
                }));
+               best_paths[*i] = new_path_len;
             }
          }
       }
-      best_paths[cur_node.i] = cur_path_len;
    }
    best_paths
 }
