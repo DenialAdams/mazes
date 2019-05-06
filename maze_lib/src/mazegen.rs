@@ -20,6 +20,7 @@ pub enum Algo {
    RecursiveDivision,
    PrimSimplified,
    PrimTrue,
+   Empty,
 }
 
 impl fmt::Display for Algo {
@@ -39,6 +40,7 @@ impl fmt::Display for Algo {
             Algo::RecursiveDivision => "Recursive Division",
             Algo::PrimSimplified => "Prim's (Simplified)",
             Algo::PrimTrue => "Prim's (True)",
+            Algo::Empty => "Empty",
          }
       )
    }
@@ -71,6 +73,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
       Algo::RecursiveDivision => recursive_division(grid, rng),
       Algo::PrimSimplified => prim_simplified(grid, rng),
       Algo::PrimTrue => prim_true(grid, rng),
+      Algo::Empty => empty(grid),
    }
 }
 
@@ -285,13 +288,8 @@ pub fn eller<R: Rng>(grid: &mut Grid, rng: &mut R) {
    }
 }
 
-pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
-   struct Rectangle {
-      x: usize,
-      y: usize,
-      width: usize,
-      height: usize,
-   }
+// not really a maze at all
+pub fn empty(grid: &mut Grid) {
    // make the grid fully connected
    for i in 0..grid.size() {
       if grid.has_neighbor_south(i) {
@@ -301,6 +299,17 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
          grid.connect_cell_east(i)
       }
    }
+}
+
+pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
+   struct Rectangle {
+      x: usize,
+      y: usize,
+      width: usize,
+      height: usize,
+   }
+
+   empty(grid);
 
    let mut rects = vec![Rectangle {
       x: 0,

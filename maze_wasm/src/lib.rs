@@ -26,7 +26,7 @@ const DIAG_PATH: u8 = 0x07;
 
 #[wasm_bindgen]
 pub struct PfDataWasm {
-   path: Box<[u32]>,
+   path: Box<[usize]>,
    diag: FinalizedDiagMapWasm,
    pub nodes_generated: usize,
    pub nodes_expanded: usize,
@@ -34,7 +34,7 @@ pub struct PfDataWasm {
 
 #[wasm_bindgen]
 impl PfDataWasm {
-   pub fn path(&self) -> Box<[u32]> {
+   pub fn path(&self) -> Box<[usize]> {
       self.path.clone()
    }
 
@@ -47,8 +47,8 @@ impl PfDataWasm {
 #[derive(Clone)]
 pub struct FinalizedDiagMapWasm {
    inner: Box<[u8]>,
-   generated_history: Box<[u32]>,
-   expanded_history: Box<[u32]>,
+   generated_history: Box<[usize]>,
+   expanded_history: Box<[usize]>,
    num_generated_history: Box<[u8]>,
 }
 
@@ -58,11 +58,11 @@ impl FinalizedDiagMapWasm {
       self.inner.clone()
    }
 
-   pub fn generated_history(&self) -> Box<[u32]> {
+   pub fn generated_history(&self) -> Box<[usize]> {
       self.generated_history.clone()
    }
 
-   pub fn expanded_history(&self) -> Box<[u32]> {
+   pub fn expanded_history(&self) -> Box<[usize]> {
       self.expanded_history.clone()
    }
 
@@ -154,6 +154,7 @@ pub fn carve_maze(mazegen_algo: &str, seed_string: String) -> MazeCarveResults {
       "Eller" => mazegen::Algo::Eller,
       "PrimSimplified" => mazegen::Algo::PrimSimplified,
       "PrimTrue" => mazegen::Algo::PrimTrue,
+      "Empty" => mazegen::Algo::Empty,
       _ => panic!("Got a bad mazegen algo from JS"),
    };
    let mut result = Vec::new();
