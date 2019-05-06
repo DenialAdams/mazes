@@ -126,6 +126,11 @@ where
       }
 
       let cur_path_len = cur_node.path.len() + 1;
+
+      if closed[cur_node.i] <= cur_node.path.len() {
+         continue;
+      }
+
       // Expand
       {
          let new_path_len = cur_path_len + 1;
@@ -169,6 +174,7 @@ where
                }));
                nodes_generated += 1;
                diag_map.mark_generated(*i);
+               closed[*i] = new_path_len;
             });
             // now, we generate the first neighbor
             // the vast vast majority of cells have only one neighbor
@@ -181,12 +187,12 @@ where
                }));
                nodes_generated += 1;
                diag_map.mark_generated(*i);
+               closed[*i] = new_path_len;
             }
          }
       }
       nodes_expanded += 1;
       diag_map.mark_expanded(cur_node.i);
-      closed[cur_node.i] = cur_path_len;
    }
    None
 }
