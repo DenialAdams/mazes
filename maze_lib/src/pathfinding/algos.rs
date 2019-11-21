@@ -207,10 +207,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
    let mut nodes_expanded = 0;
    let mut diag_map = DiagMap::new(grid.size());
    let mut path = vec![];
-   let mut stack: Vec<DfsNode> = vec![DfsNode {
-      i: start,
-      path_len: 0,
-   }];
+   let mut stack: Vec<DfsNode> = vec![DfsNode { i: start, path_len: 0 }];
    while let Some(cur_node) = stack.pop() {
       path.truncate(cur_node.path_len);
       path.push(cur_node.i);
@@ -237,37 +234,25 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
          {
             // N
             if grid[cur_node.i].north_connected && diag_map[i_north] == DIAG_UNEXPLORED {
-               stack.push(DfsNode {
-                  i: i_north,
-                  path_len,
-               });
+               stack.push(DfsNode { i: i_north, path_len });
                nodes_generated += 1;
                diag_map.mark_generated(i_north);
             }
             // S
             if grid[cur_node.i].south_connected && diag_map[i_south] == DIAG_UNEXPLORED {
-               stack.push(DfsNode {
-                  i: i_south,
-                  path_len,
-               });
+               stack.push(DfsNode { i: i_south, path_len });
                nodes_generated += 1;
                diag_map.mark_generated(i_south);
             }
             // E
             if grid[cur_node.i].east_connected && diag_map[i_east] == DIAG_UNEXPLORED {
-               stack.push(DfsNode {
-                  i: i_east,
-                  path_len,
-               });
+               stack.push(DfsNode { i: i_east, path_len });
                nodes_generated += 1;
                diag_map.mark_generated(i_east);
             }
             // W
             if grid[cur_node.i].west_connected && diag_map[i_west] == DIAG_UNEXPLORED {
-               stack.push(DfsNode {
-                  i: i_west,
-                  path_len,
-               });
+               stack.push(DfsNode { i: i_west, path_len });
                nodes_generated += 1;
                diag_map.mark_generated(i_west);
             }

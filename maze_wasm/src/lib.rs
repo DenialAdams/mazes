@@ -1,6 +1,6 @@
 use maze_lib::grid::Grid;
 use maze_lib::{mazegen, pathfinding};
-use rand::{FromEntropy, SeedableRng};
+use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use std::io::Write;
 
