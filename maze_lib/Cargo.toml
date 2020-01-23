@@ -8,7 +8,7 @@ edition = "2018"
 rand = "0.7"
 
 [dev-dependencies]
-criterion = "0.2"
+criterion = "0.3"
 fxhash = "0.2"
 rand_xorshift = "0.2"
 
