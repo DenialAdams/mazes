@@ -20,7 +20,8 @@ pipeline {
       stage('Wasm Build') {
          steps {
             dir('maze_wasm') {
-               sh 'wasm-pack build --target web'
+               sh 'cargo build --release --target wasm32-unknown-unknown
+               sh 'wasm-bindgen --target web ../target/wasm32-unknown-unknown/release/maze_wasm.wasm --out-dir ./pkg'
             }
          }
       }
