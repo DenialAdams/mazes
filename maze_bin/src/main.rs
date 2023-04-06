@@ -1,4 +1,3 @@
-use fxhash;
 use maze_lib::grid::Grid;
 use maze_lib::mazegen;
 use rand::SeedableRng;

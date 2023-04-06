@@ -179,7 +179,7 @@ where
             // now, we generate the first neighbor
             // the vast vast majority of cells have only one neighbor
             // in mazes, so avoiding a clone is a huge optimization
-            if let Some(i) = neighbors_to_generate.get(0) {
+            if let Some(i) = neighbors_to_generate.first() {
                open.push(Reverse(PriorityNode {
                   priority: g + h(*i, goal, grid.width),
                   i: *i,
@@ -325,7 +325,7 @@ pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
             // now, we generate the first neighbor
             // the vast vast majority of cells have only one neighbor
             // in mazes, so avoiding a clone is a huge optimization
-            if let Some(i) = neighbors_to_generate.get(0) {
+            if let Some(i) = neighbors_to_generate.first() {
                open.push(Reverse(Node {
                   i: *i,
                   path: cur_node.path,

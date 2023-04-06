@@ -2,7 +2,7 @@
 name = "maze_bin"
 version = "0.1.0"
 authors = ["Richard McCormack <brick@brick.codes>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 maze_lib = { path = "../maze_lib" }

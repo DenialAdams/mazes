@@ -312,14 +312,12 @@ impl Grid {
             hls.x_1, hls.y, hls.x_2, hls.y
          )?;
       }
-      for vertical_line_segment in current_vertical_line_segments.iter() {
-         if let Some(ref vls) = vertical_line_segment {
-            writeln!(
-               dest,
-               "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
-               vls.x, vls.y_1, vls.x, vls.y_2
-            )?;
-         }
+      for vls in current_vertical_line_segments.iter().flatten() {
+         writeln!(
+            dest,
+            "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
+            vls.x, vls.y_1, vls.x, vls.y_2
+         )?;
       }
       Ok(())
    }

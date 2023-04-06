@@ -85,8 +85,7 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> PfDataWasm {
    }
    .unwrap();
    let mut pf_data_wasm: PfDataWasm = unsafe { std::mem::transmute(pf_data) };
-   for i in pf_data_wasm.path.iter() {
-      let i = *i as usize;
+   for i in pf_data_wasm.path.iter().copied() {
       pf_data_wasm.diag.inner[i] = DIAG_PATH;
    }
    pf_data_wasm
