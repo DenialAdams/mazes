@@ -343,25 +343,25 @@ mod test {
    #[test]
    fn has_neighbor() {
       let g = Grid::new(5, 5);
-      assert_eq!(g.has_neighbor_north(0), false);
-      assert_eq!(g.has_neighbor_south(0), true);
-      assert_eq!(g.has_neighbor_east(0), true);
-      assert_eq!(g.has_neighbor_west(0), false);
-      assert_eq!(g.has_neighbor_north(4), false);
-      assert_eq!(g.has_neighbor_south(4), true);
-      assert_eq!(g.has_neighbor_east(4), false);
-      assert_eq!(g.has_neighbor_west(4), true);
-      assert_eq!(g.has_neighbor_north(45), true);
-      assert_eq!(g.has_neighbor_south(45), false);
-      assert_eq!(g.has_neighbor_east(45), true);
-      assert_eq!(g.has_neighbor_west(45), false);
-      assert_eq!(g.has_neighbor_north(49), true);
-      assert_eq!(g.has_neighbor_south(49), false);
-      assert_eq!(g.has_neighbor_east(49), false);
-      assert_eq!(g.has_neighbor_west(49), true);
-      assert_eq!(g.has_neighbor_north(7), true);
-      assert_eq!(g.has_neighbor_south(7), true);
-      assert_eq!(g.has_neighbor_east(7), true);
-      assert_eq!(g.has_neighbor_west(7), true);
+      assert!(!g.has_neighbor_north(0));
+      assert!(g.has_neighbor_south(0));
+      assert!(g.has_neighbor_east(0));
+      assert!(!g.has_neighbor_west(0));
+      assert!(!g.has_neighbor_north(4));
+      assert!(g.has_neighbor_south(4));
+      assert!(!g.has_neighbor_east(4));
+      assert!(g.has_neighbor_west(4));
+      assert!(g.has_neighbor_north(45));
+      assert!(!g.has_neighbor_south(45));
+      assert!(g.has_neighbor_east(45));
+      assert!(!g.has_neighbor_west(45));
+      assert!(g.has_neighbor_north(49));
+      assert!(!g.has_neighbor_south(49));
+      assert!(!g.has_neighbor_east(49));
+      assert!(g.has_neighbor_west(49));
+      assert!(g.has_neighbor_north(7));
+      assert!(g.has_neighbor_south(7));
+      assert!(g.has_neighbor_east(7));
+      assert!(g.has_neighbor_west(7));
    }
 }
