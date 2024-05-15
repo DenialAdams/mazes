@@ -111,7 +111,7 @@ where
       i: start,
       path: vec![],
    }));
-   let mut closed: Box<[usize]> = vec![std::usize::MAX; grid.size()].into_boxed_slice();
+   let mut closed: Box<[usize]> = vec![usize::MAX; grid.size()].into_boxed_slice();
    let mut neighbors_to_generate = Vec::with_capacity(4);
    while let Some(Reverse(mut cur_node)) = open.pop() {
       if cur_node.i == goal {
@@ -272,7 +272,7 @@ pub fn dfs(grid: &Grid, start: usize, goal: usize) -> Option<PathData> {
 }
 
 pub fn djikstra(grid: &Grid, start: usize) -> Box<[usize]> {
-   let mut best_paths = vec![std::usize::MAX; grid.size()].into_boxed_slice();
+   let mut best_paths = vec![usize::MAX; grid.size()].into_boxed_slice();
    let mut open: BinaryHeap<Reverse<Node>> = BinaryHeap::new();
    let mut neighbors_to_generate = Vec::with_capacity(4);
    open.push(Reverse(Node { i: start, path: vec![] }));
