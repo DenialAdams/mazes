@@ -276,7 +276,7 @@ impl Grid {
          }
 
          if cell.east_connected {
-            if let Some(ref vls) = current_vertical_line_segment {
+            if let Some(vls) = current_vertical_line_segment.as_ref() {
                writeln!(
                   dest,
                   "<line x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/>",
@@ -284,7 +284,7 @@ impl Grid {
                )?;
                *current_vertical_line_segment = None;
             }
-         } else if let Some(ref mut vls) = current_vertical_line_segment {
+         } else if let Some(vls) = current_vertical_line_segment.as_mut() {
             if vls.x != upper_left_x + 3 {
                writeln!(
                   dest,

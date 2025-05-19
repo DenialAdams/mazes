@@ -1,6 +1,6 @@
 use crate::disjoint_set::DisjointSet;
 use crate::grid::Grid;
-use rand::distributions::{Distribution, Uniform};
+use rand::distr::{Distribution, Uniform};
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::Rng;
 use std::cmp::Ordering;
@@ -80,7 +80,7 @@ pub fn carve_maze<R: Rng>(grid: &mut Grid, rng: &mut R, algo: Algo) {
 pub fn binary_tree<R: Rng>(grid: &mut Grid, rng: &mut R) {
    for i in 0..grid.size() {
       if grid.has_neighbor_north(i) && grid.has_neighbor_east(i) {
-         if rng.gen_bool(0.5) {
+         if rng.random_bool(0.5) {
             grid.connect_cell_north(i);
          } else {
             grid.connect_cell_east(i);
@@ -98,15 +98,15 @@ pub fn sidewinder<R: Rng>(grid: &mut Grid, rng: &mut R) {
    for i in 0..grid.size() {
       if grid.has_neighbor_north(i) && grid.has_neighbor_east(i) {
          cur_run.push(i);
-         if rng.gen_bool(0.5) {
-            grid.connect_cell_north(*cur_run.choose(rng).unwrap());
+         if rng.random_bool(0.5) {
+            grid.connect_cell_north(cur_run.iter().choose(rng).copied().unwrap());
             cur_run.clear();
          } else {
             grid.connect_cell_east(i);
          }
       } else if grid.has_neighbor_north(i) {
          cur_run.push(i);
-         grid.connect_cell_north(*cur_run.choose(rng).unwrap());
+         grid.connect_cell_north(cur_run.iter().choose(rng).copied().unwrap());
          cur_run.clear();
       } else if grid.has_neighbor_east(i) {
          grid.connect_cell_east(i);
@@ -122,7 +122,7 @@ pub fn aldous_broder<R: Rng>(grid: &mut Grid, rng: &mut R) {
    while visited.iter().any(|x| !x) {
       neighbors.clear();
       grid.neighbors(cur_index, &mut neighbors);
-      let target = *neighbors.choose(rng).unwrap();
+      let target = neighbors.iter().choose(rng).copied().unwrap();
       if !visited[target] {
          grid.connect_neighbors(cur_index, target);
       }
@@ -148,7 +148,7 @@ pub fn wilson<R: Rng>(grid: &mut Grid, rng: &mut R) {
       } else {
          neighbors.clear();
          grid.neighbors(*walker_path.last().unwrap(), &mut neighbors);
-         let target = *neighbors.choose(rng).unwrap();
+         let target = neighbors.iter().choose(rng).copied().unwrap();
          if let Some(i) = walker_path.iter().rposition(|i| *i == target) {
             walker_path.truncate(i + 1);
          } else {
@@ -184,7 +184,7 @@ pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
             }
 
             // choose a visited neighbor, connect
-            let target = *neighbors.choose(rng).unwrap();
+            let target = neighbors.iter().choose(rng).copied().unwrap();
             grid.connect_neighbors(i, target);
             cur_index = i;
             visited[i] = true;
@@ -194,7 +194,7 @@ pub fn hunt_and_kill<R: Rng>(grid: &mut Grid, rng: &mut R) {
          // (no unvisited cells)
          break;
       }
-      let target = *neighbors.choose(rng).unwrap();
+      let target = neighbors.iter().choose(rng).copied().unwrap();
       grid.connect_neighbors(cur_index, target);
       cur_index = target;
       visited[cur_index] = true;
@@ -213,7 +213,7 @@ pub fn recursive_backtracker<R: Rng>(grid: &mut Grid, rng: &mut R) {
       if neighbors.is_empty() {
          stack.pop();
       } else {
-         let target = *neighbors.choose(rng).unwrap();
+         let target = neighbors.iter().choose(rng).copied().unwrap();
          grid.connect_neighbors(*stack.last().unwrap(), target);
          stack.push(target);
          visited[target] = true;
@@ -254,7 +254,7 @@ pub fn eller<R: Rng>(grid: &mut Grid, rng: &mut R) {
          if disjoint_set.find(i) == disjoint_set.find(i + 1) {
             continue;
          }
-         if r == (grid.height - 1) || rng.gen_bool(0.5) {
+         if r == (grid.height - 1) || rng.random_bool(0.5) {
             disjoint_set.union(i, i + 1);
             grid.connect_cell_east(i);
          }
@@ -279,7 +279,7 @@ pub fn eller<R: Rng>(grid: &mut Grid, rng: &mut R) {
          disjoint_set.union(chosen_rep, chosen_rep + grid.width);
          grid.connect_cell_south(chosen_rep);
          for elem in sets_to_elems_in_set[*set_in_row].iter().skip(1) {
-            if rng.gen_bool(0.333) {
+            if rng.random_bool(0.333) {
                disjoint_set.union(*elem, *elem + grid.width);
                grid.connect_cell_south(*elem);
             }
@@ -369,12 +369,12 @@ pub fn recursive_division<R: Rng>(grid: &mut Grid, rng: &mut R) {
 
 pub fn prim_simplified<R: Rng>(grid: &mut Grid, rng: &mut R) {
    let mut frontier = Vec::new();
-   frontier.push(rng.gen_range(0, grid.size()));
+   frontier.push(rng.random_range(0..grid.size()));
 
    let mut neighbors: Vec<usize> = Vec::with_capacity(4);
    let mut available_neighbors: Vec<usize> = Vec::with_capacity(4);
    while !frontier.is_empty() {
-      let frontier_index = rng.gen_range(0, frontier.len());
+      let frontier_index = rng.random_range(0..frontier.len());
       let i = frontier[frontier_index];
 
       neighbors.clear();
@@ -385,7 +385,7 @@ pub fn prim_simplified<R: Rng>(grid: &mut Grid, rng: &mut R) {
       if available_neighbors.is_empty() {
          frontier.swap_remove(frontier_index);
       } else {
-         let chosen_neighbor = *available_neighbors.choose(rng).unwrap();
+         let chosen_neighbor = available_neighbors.iter().choose(rng).copied().unwrap();
          grid.connect_neighbors(i, chosen_neighbor);
          frontier.push(chosen_neighbor);
       }
@@ -413,7 +413,7 @@ pub fn prim_true<R: Rng>(grid: &mut Grid, rng: &mut R) {
 
    let costs = {
       let mut costs: Vec<u8> = Vec::with_capacity(grid.size());
-      let range = Uniform::new(0, 100);
+      let range = Uniform::new(0, 100).unwrap();
       for _ in 0..grid.size() {
          costs.push(range.sample(rng));
       }
@@ -421,7 +421,7 @@ pub fn prim_true<R: Rng>(grid: &mut Grid, rng: &mut R) {
    };
 
    let mut frontier = BinaryHeap::new();
-   let start = rng.gen_range(0, grid.size());
+   let start = rng.random_range(0..grid.size());
    frontier.push(FrontierNode {
       grid_index: start,
       cost: costs[start],

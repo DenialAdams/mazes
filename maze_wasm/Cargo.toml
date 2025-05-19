@@ -2,7 +2,7 @@
 name = "maze_wasm"
 version = "0.1.0"
 authors = ["Richard McCormack <brick@brick.codes>"]
-edition = "2021"
+edition = "2024"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -10,7 +10,11 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 maze_lib = { path = "../maze_lib" }
 wasm-bindgen = "0.2"
-rand = { version = "0.7", features = ["wasm-bindgen"] }
-rand_xorshift = "0.2"
+rand = "0.9"
+rand_xorshift = "0.4"
 console_error_panic_hook = "0.1"
 fxhash = "0.2"
+
+[dependencies.getrandom]
+features = ["wasm_js"]
+version = "0.3"

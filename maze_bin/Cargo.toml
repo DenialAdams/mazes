@@ -2,10 +2,10 @@
 name = "maze_bin"
 version = "0.1.0"
 authors = ["Richard McCormack <brick@brick.codes>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 maze_lib = { path = "../maze_lib" }
-rand = "0.7"
-rand_xorshift = "0.2"
+rand = "0.9"
+rand_xorshift = "0.4"
 fxhash = "0.2"

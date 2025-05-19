@@ -2,15 +2,15 @@
 name = "maze_lib"
 version = "0.1.0"
 authors = ["Richard McCormack <brick@brick.codes>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-rand = "0.7"
+rand = "0.9"
 
 [dev-dependencies]
 criterion = "0.3"
 fxhash = "0.2"
-rand_xorshift = "0.2"
+rand_xorshift = "0.4"
 
 [[bench]]
 name = "pathfinding"

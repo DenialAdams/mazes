@@ -3,6 +3,7 @@ use maze_lib::{mazegen, pathfinding};
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use std::io::Write;
+use std::sync::Mutex;
 
 use wasm_bindgen::prelude::*;
 
@@ -10,16 +11,14 @@ pub struct MazeApp {
    grid: Grid,
 }
 
-static mut MAZE_APP: Option<MazeApp> = None;
+static MAZE_APP: Mutex<Option<MazeApp>> = Mutex::new(None);
 
 #[wasm_bindgen]
 pub fn app_init() {
    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-   unsafe {
-      MAZE_APP = Some(MazeApp {
+   *MAZE_APP.lock().unwrap() = Some(MazeApp {
          grid: Grid::new(12, 12),
-      })
-   };
+   })
 }
 
 const DIAG_PATH: u8 = 0x07;
@@ -73,7 +72,8 @@ impl FinalizedDiagMapWasm {
 
 #[wasm_bindgen]
 pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> PfDataWasm {
-   let app = unsafe { MAZE_APP.as_ref().unwrap() };
+   let app_lock = MAZE_APP.lock().unwrap();
+   let app = app_lock.as_ref().unwrap();
    let pf_data = match pathfind_algo {
       "UniformCostSearch" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::null_h, start, goal, false),
       "AStar" => pathfinding::algos::a_star(&app.grid, pathfinding::heuristics::manhattan_h, start, goal, false),
@@ -93,7 +93,8 @@ pub fn pathfind(start: usize, goal: usize, pathfind_algo: &str) -> PfDataWasm {
 
 #[wasm_bindgen]
 pub fn djikstra(start: usize) -> Box<[u32]> {
-   let app = unsafe { MAZE_APP.as_ref().unwrap() };
+   let app_lock = MAZE_APP.lock().unwrap();
+   let app = app_lock.as_ref().unwrap();
    let best_paths = pathfinding::algos::djikstra(&app.grid, start);
    let longest_path = *best_paths.iter().max().unwrap();
    let mut rgb_data = vec![0u32; best_paths.len()].into_boxed_slice();
@@ -108,7 +109,8 @@ pub fn djikstra(start: usize) -> Box<[u32]> {
 
 #[wasm_bindgen]
 pub fn change_grid(width: usize, height: usize) -> String {
-   let app = unsafe { MAZE_APP.as_mut().unwrap() };
+   let mut app_lock = MAZE_APP.lock().unwrap();
+   let app = app_lock.as_mut().unwrap();
    let mut result = Vec::new();
    app.grid = Grid::new(width, height);
    writeln!(
@@ -140,7 +142,8 @@ impl MazeCarveResults {
 
 #[wasm_bindgen]
 pub fn carve_maze(mazegen_algo: &str, seed_string: String) -> MazeCarveResults {
-   let app = unsafe { MAZE_APP.as_mut().unwrap() };
+   let mut app_lock = MAZE_APP.lock().unwrap();
+   let app = app_lock.as_mut().unwrap();
    let algo = match mazegen_algo {
       "BinaryTree" => mazegen::Algo::BinaryTree,
       "Sidewinder" => mazegen::Algo::Sidewinder,
@@ -159,7 +162,7 @@ pub fn carve_maze(mazegen_algo: &str, seed_string: String) -> MazeCarveResults {
    let mut result = Vec::new();
    app.grid.reset();
    let mut rng = if seed_string.is_empty() {
-      XorShiftRng::from_entropy()
+      XorShiftRng::from_os_rng()
    } else {
       let seed_u64 = fxhash::hash64(&seed_string);
       XorShiftRng::seed_from_u64(seed_u64)

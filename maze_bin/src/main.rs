@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)] // I'm an old man and I like the way it was before
+
 use maze_lib::grid::Grid;
 use maze_lib::mazegen;
 use rand::SeedableRng;
@@ -18,13 +20,7 @@ fn init_svg(name: &'static str, grid: &Grid) -> io::Result<BufWriter<File>> {
 }
 
 fn main() {
-   let seed_string = "jitter";
-   let mut rng = if seed_string.is_empty() {
-      XorShiftRng::from_entropy()
-   } else {
-      let seed_u64 = fxhash::hash64(seed_string);
-      XorShiftRng::seed_from_u64(seed_u64)
-   };
+   let mut rng = XorShiftRng::from_os_rng();
    if std::env::args().any(|x| x == "--dead-ends") {
       const DEADEND_WIDTH: usize = 20;
       const DEADEND_HEIGHT: usize = 20;
